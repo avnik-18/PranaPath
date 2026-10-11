@@ -32,6 +32,8 @@ def handler(event, context):
             qs.get("origin", "ashok_vihar"),
             qs.get("dest", "pitampura"),
             qs.get("mode", "jog"),
+            trip=qs.get("trip"),
+            budget=qs.get("budget"),
         )
     return {
         "statusCode": 200 if payload.get("ok") else 400,

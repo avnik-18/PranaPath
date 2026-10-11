@@ -11,13 +11,13 @@ PM_REFERENCE = 150.0                              # µg/m³ 'city-day neutral'
 HEALTH_SENSITIVITY = 4.0                          # health-cost weight × (pm25/reference)
 
 
-def compare_routes(g, origin, dest, mode):
+def compare_routes(g, origin, dest, mode, budget=None):
     o = _resolve_or_raise(g, origin)
     d = _resolve_or_raise(g, dest)
     scale = PACE.get(mode) or (lambda: (_ for _ in ()).throw(ValueError(f"mode {mode!r}")))()
 
     a = _search(g, o, d, scale=scale, use_health=False)
-    b = _search(g, o, d, scale=scale, use_health=True)
+    b = _budgeted(g, o, d, scale, a["minutes"], budget)
     if a is None:
         return {"ok": False, "error": f"unreachable: {origin} -> {dest}"}
 
@@ -51,7 +51,7 @@ def compare_routes(g, origin, dest, mode):
 
 
 def self_smog(g, panel, route_edges):
-    """The 1-km organic haze the map paints under both routes (engine-owned)."""
+    """The full-area 50 m blob field + street puffs the map paints (engine-owned)."""
     from . import smog as sm
     pts = []
     for rid in ("route_fastest", "route_healthy"):
@@ -60,7 +60,20 @@ def self_smog(g, panel, route_edges):
     hot = sorted({e["id"]: e for e in route_edges}.values(), key=lambda e: -e["pm25_ug_m3"])
     hot_enough = [e for e in hot if e["pm25_ug_m3"] >= sm.KIND_MID][:8]
     panel["puffs"] = sm.build_puffs(_hot_points(g, hot_enough))
-    return sm.build_smog(pts, _hot_points(g, hot[:4]), baseline)
+    return sm.find_field(pts, _hot_points(g, hot[:4]), baseline)
+
+
+def _budgeted(g, o, d, scale, fastest_min, budget):
+    """budget=None → unconstrained health search; budget x → Pareto labels under cap."""
+    if not budget or budget <= 0:
+        return _search(g, o, d, scale=scale, use_health=True)
+    from .constrained import search_with_cap
+    r = search_with_cap(g, o, d, scale, cap_min=fastest_min * budget,
+                        health_w=HEALTH_SENSITIVITY, pm_ref=PM_REFERENCE)
+    if r is None:                        # cap unreachable (cap too tight) → health search
+        return _search(g, o, d, scale=scale, use_health=True)
+    r["via"] = _via_names(g, r["path"])
+    return r
 
 
 def _pts(g, ids):

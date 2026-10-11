@@ -17,7 +17,7 @@ def _graph():
     return _GRAPH
 
 
-def handle_routes(origin, dest, mode, trip=None):
+def handle_routes(origin, dest, mode, trip=None, budget=None):
     from .schemas import routes_response, error_response
 
     if trip:
@@ -25,7 +25,7 @@ def handle_routes(origin, dest, mode, trip=None):
         r = resolve(trip)
         origin, dest = r["origin"], r["dest"]
     try:
-        panel = _routes().compare_routes(_graph(), origin, dest, mode)
+        panel = _routes().compare_routes(_graph(), origin, dest, mode, budget=_budget(budget))
     except KeyError as exc:                      # unknown node/landmark -> clean 400, not 500
         return error_response("unknown_node", str(exc))
     if not panel.get("ok"):
@@ -46,6 +46,16 @@ def handle_state():
             "aqi_snapshot": (_ROOT / "data" / "aqi_snapshot.json").exists(),
         },
     }
+
+
+def _budget(raw):
+    """'1.1' → 1.1; 'none'/'any'/'' → None (unconstrained). Anything else → None."""
+    if raw in (None, "", "any", "none"):
+        return None
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return None
 
 
 def shaped_nodes(panel):

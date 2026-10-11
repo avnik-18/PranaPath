@@ -1,22 +1,25 @@
-"""1-km smog cells over the corridor: deterministic ORGANIC polygons, never circles.
+"""AQI blob field over the corridor: 50 m organic blobs everywhere, banded by pm.
 
-For each ~1 km grid cell around the route corridor, the blob radius breathes with
-seeded harmonics (sha1 of the cell id) so the rendered haze looks like smog, not
-porcelain. Cell pm is broadcast from the nearest hotspot point, else the route
-baseline. Same inputs -> same polygons, every run, every machine.
+Design contract (deterministic, no randomness):
+- hex-ish lattice at 100 m spacing with seeded anchor scatter → soft overlap (~10%)
+- every blob breathes with seeded harmonics (sha1) → organic, never a perfect circle
+- per-blob reading = nearest hotspot receipt blended toward the route baseline over
+  1.5 km, plus ±8% seeded micro-variation → blobs differ from their neighbours
+- blobs are grouped by rounded pm band (±20 µg) and returned as one MultiPolygon
+  feature per band so the map stays light while every blob keeps its own value
 """
 import hashlib
 from math import cos, pi, radians, sin, sqrt
 
 KM_PER_DEG_LAT = 111.32
-CELL_KM = 1.0                 # grid step: the 1 km zone resolution
-POLY_KM = 0.78                # blob footprint, km (radius peak < 1.0)
-JITTER_KM = 0.3               # anchor wander inside the cell
-MAX_CELLS = 10
-VERTICES = 34                 # more vertices = smoother organic outline
-PAD_KM = 1.4                  # corridor halo — stays near the demo streets
+FIELD_SPACING_KM = 0.10       # lattice step: overlap ~10% at 55 m radius
+FIELD_R_KM = 0.055            # blob promise: 55 m radius (neighbours just touch)
+FIELD_VERTS = 16
+FIELD_PAD_KM = 0.8
+FIELD_BAND_UG = 20.0          # pm bands: one MultiPolygon per ±20 µg bucket
+MAX_BLOBS = 5200
 
-PUFF_KM = 0.05                # street puffs: 50 m organic blobs on the hottest edges
+PUFF_KM = 0.05                # street puffs: 50 m blobs on the hottest edges
 PUFF_VERTS = 18
 PUFFS_MAX = 6
 PUFF_GAP_KM = 0.22            # one puff per hot pocket, closer pockets get their own
@@ -29,90 +32,68 @@ def level_of(pm):
     return "high" if pm >= KIND_HIGH else ("mid" if pm >= KIND_MID else "low")
 
 
-def build_smog(path_nodes, hot_points, baseline_pm):
-    """path_nodes: [{lat,lon}]; hot_points: [{lat,lon,pm25}]; -> 1-km smog cells."""
-    pts = [(p["lat"], p["lon"]) for p in path_nodes] or []
+def find_field(path_nodes, hot_points, baseline_pm):
+    """path_nodes: [{lat,lon}]; hot_points: [{lat,lon,pm25}]; -> band MultiPolygons."""
+    pts = [(p["lat"], p["lon"]) for p in path_nodes]
     if not pts:
         return []
     lats = [p[0] for p in pts]
     lons = [p[1] for p in pts]
     mid_lat = sum(lats) / len(lats)
     km_lon = KM_PER_DEG_LAT * max(cos(radians(mid_lat)), 0.25)
+    lat0 = min(lats) - FIELD_PAD_KM / KM_PER_DEG_LAT
+    lat1 = max(lats) + FIELD_PAD_KM / KM_PER_DEG_LAT
+    lon0 = min(lons) - FIELD_PAD_KM / km_lon
+    lon1 = max(lons) + FIELD_PAD_KM / km_lon
 
-    def deg(km, is_lat):
-        return km / KM_PER_DEG_LAT if is_lat else km / km_lon
+    step_lon = FIELD_SPACING_KM / km_lon
+    step_lat = FIELD_SPACING_KM / KM_PER_DEG_LAT
+    rows = int((lat1 - lat0) / (step_lat * 0.87)) + 1
+    cols = int((lon1 - lon0) / step_lon) + 1
 
-    cells = []
-    row = 0
-    lat = min(lats) - deg(PAD_KM, True)
-    while lat <= max(lats) + deg(PAD_KM, True):
-        col = 0
-        lon = min(lons) - deg(PAD_KM, False)
-        while lon <= max(lons) + deg(PAD_KM, False):
-            jy, jx = _seeded_offsets(row, col)
-            plat = lat + deg(jy, True)
-            plon = lon + deg(jx, False)
-            pm = _cell_pm(plon, plat, hot_points, baseline_pm, km_lon)
-            cells.append((plat, plon, pm, row, col))
-            lon += deg(CELL_KM, False)
-            col += 1
-        lat += deg(CELL_KM, True)
-        row += 1
+    bands = {}
+    for row in range(rows):
+        for col in range(cols):
+            if row * cols + col >= MAX_BLOBS:
+                break
+            jy, jx = _anchor_shift(row, col)
+            plon = lon0 + (col + jx) * step_lon
+            plat = lat0 + (row + jy) * step_lat * 0.87
+            pm = _blob_pm(plon, plat, hot_points, baseline_pm, km_lon) * _micro(row, col)
+            band = int(round(pm / FIELD_BAND_UG) * FIELD_BAND_UG)
+            ring = _field_ring(plat, plon, km_lon, row, col)
+            bands.setdefault(band, []).append(ring)
 
-    cells.sort(key=lambda c: (-c[2], c[3], c[4]))
-    return [_polygon(c, km_lon) for c in cells[:MAX_CELLS]]
-
-
-def _polygon(cell, km_lon):
-    plat, plon, pm, row, col = cell
-    return {
-        "polygon": _ring(plat, plon, km_lon, row, col, 1.0),
-        "core": _ring(plat, plon, km_lon, row, col, 0.55),
-        "pm25": round(pm, 1),
-        "level": level_of(pm),
-    }
+    out = []
+    for band in sorted(bands, reverse=True):
+        out.append({
+            "polygon": bands[band],          # MultiPolygon: one entry per ring
+            "pm25": float(band),
+            "level": level_of(band),
+            "count": len(bands[band]),
+        })
+    return out
 
 
-def _ring(plat, plon, km_lon, row, col, scale):
-    """One organic ring (closed) at `scale` of the cell's seeded radius. Never a circle."""
+def _field_ring(plat, plon, km_lon, row, col):
+    """One 12-vertex organic ring, radius ≤ FIELD_R_KM, seeded by its anchor."""
+    s = _seed_int("field", row, col)
     ring = []
-    for k in range(VERTICES):
-        theta = 2 * pi * k / VERTICES
-        r = _radius(_seed_int(row, col) + k, theta) * scale
+    for k in range(FIELD_VERTS):
+        theta = 2 * pi * k / FIELD_VERTS
+        r = min(FIELD_R_KM * (0.82 + 0.24 * _harmony(s + k, theta)), FIELD_R_KM)
         ring.append([
-            round(plon + deg_km(r * cos(theta), km_lon), 5),
-            round(plat + deg_km(r * sin(theta), km_lon, lat=True), 5),
+            round(plon + deg_km(r * cos(theta), km_lon), 4),
+            round(plat + deg_km(r * sin(theta), km_lon, lat=True), 4),
         ])
     ring.append(ring[0])                      # GeoJSON: exterior ring closes explicitly
     return ring
 
 
-def deg_km(km, km_lon, lat=False):
-    """Project a km distance to degrees (cos-adjusted for lon at this latitude)."""
-    return km / KM_PER_DEG_LAT if lat else km / km_lon
-
-
-def _radius(seed, theta):
-    """Radius (km) = seeded harmonic breathing; clamped so blobs stay irregular."""
-    f = _harmony(seed, theta)
-    r = POLY_KM * (0.62 + 0.38 * (f + 0.31))
-    return max(min(r, 1.0), 0.45)
-
-
-def _harmony(seed, theta):
-    """Seeded 3-harmonic breathing term, shared by corridor cells and street puffs."""
-    a1 = 0.16 + (seed % 7) / 100.0
-    a2 = 0.07 + ((seed >> 3) % 7) / 100.0
-    a3 = 0.05 + ((seed >> 5) % 5) / 100.0
-    return (a1 * sin(2 * theta + (seed % 13) / 2.0)
-            + a2 * sin(3 * theta + ((seed >> 2) % 11) / 3.0)
-            + a3 * sin(5 * theta + ((seed >> 4) % 17) / 5.0))
-
-
 def build_puffs(points):
     """50-m organic street puffs anchored on the hottest edges (seeded by edge id).
 
-    One puff per hot pocket (>350 m apart), radius breathes but never exceeds 50 m.
+    One puff per hot pocket (>220 m apart), radius breathes but never exceeds 50 m.
     """
     puffs, anchors = [], []
     for h in sorted(points, key=lambda x: (-x["pm25"], x["id"])):
@@ -137,20 +118,42 @@ def build_puffs(points):
     return puffs
 
 
+def deg_km(km, km_lon, lat=False):
+    """Project a km distance to degrees (cos-adjusted for lon at this latitude)."""
+    return km / KM_PER_DEG_LAT if lat else km / km_lon
+
+
+def _harmony(seed, theta):
+    """Seeded 3-harmonic breathing term, shared by field blobs and street puffs."""
+    a1 = 0.16 + (seed % 7) / 100.0
+    a2 = 0.07 + ((seed >> 3) % 7) / 100.0
+    a3 = 0.05 + ((seed >> 5) % 5) / 100.0
+    return (a1 * sin(2 * theta + (seed % 13) / 2.0)
+            + a2 * sin(3 * theta + ((seed >> 2) % 11) / 3.0)
+            + a3 * sin(5 * theta + ((seed >> 4) % 17) / 5.0))
+
+
 def _seed_int(*parts):
     blob = hashlib.sha1("|".join(str(p) for p in parts).encode("utf-8")).hexdigest()
     return int(blob[:8], 16)
 
 
-def _seeded_offsets(row, col):
+def _anchor_shift(row, col):
+    """Seeded scatter inside the lattice cell — no visible grid tiling."""
     s = _seed_int("anchor", row, col)
-    jy = ((s % 1000) / 1000.0 - 0.5) * 2 * JITTER_KM
-    jx = (((s >> 9) % 1000) / 1000.0 - 0.5) * 2 * JITTER_KM
+    jy = ((s % 1000) / 1000.0 - 0.5) * 0.55
+    jx = (((s >> 9) % 1000) / 1000.0 - 0.5) * 0.55
     return jy, jx
 
 
-def _cell_pm(plon, plat, hot_points, baseline_pm, km_lon):
-    """Nearest hotspot reading blended toward the baseline over ~1.5 km — smog mellows with distance."""
+def _micro(row, col):
+    """±8% seeded micro-variation so neighbours read different AQI values."""
+    s = _seed_int("micro", row, col)
+    return 1.0 + (((s % 1000) / 1000.0 - 0.5) * 0.16)
+
+
+def _blob_pm(plon, plat, hot_points, baseline_pm, km_lon):
+    """Nearest hotspot reading blended toward the baseline over ~1.5 km."""
     best_d, best_pm = float("inf"), None
     for h in hot_points:
         d = _km(plon, plat, h["lon"], h["lat"], km_lon)

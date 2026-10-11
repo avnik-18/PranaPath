@@ -14,8 +14,14 @@ const TRIPS = [
   { key: 'long', label: 'long · 5.7 km' },
 ]
 
+const BUDGETS = [
+  { key: 'any', label: 'no cap' },
+  { key: '1.05', label: '≤ 1.05× fast' },
+  { key: '1.1', label: '≤ 1.1× fast' },
+]
+
 export default function Home(p: Props) {
-  const rt = useRoutesRuntime('short', 'jog')
+  const rt = useRoutesRuntime('short', 'jog', 'any')
   const payload = rt.payload
 
   return (
@@ -33,6 +39,15 @@ export default function Home(p: Props) {
               {TRIPS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </label>
+          <label>
+            cap
+            <select value={rt.budget} onChange={(e) => rt.setBudget(e.target.value)}>
+              {BUDGETS.map((b) => <option key={b.key} value={b.key}>{b.label}</option>)}
+            </select>
+          </label>
+          {rt.budget !== 'any' && payload?.ok && (
+            <span className="pill pill-ok">route within {rt.budget}× fast ✓</span>
+          )}
           {rt.fixture && <span className="pill pill-soft">demo bundle</span>}
           <button className="ghost" onClick={p.onOpenReceipts}>receipts</button>
           <button className="ghost" onClick={rt.reload}>reload</button>

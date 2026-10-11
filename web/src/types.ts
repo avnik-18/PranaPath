@@ -16,11 +16,11 @@ export interface RouteShape {
   dose_ug: number
 }
 
-export interface SmogCell {
-  polygon: [number, number][]
-  core: [number, number][]
+export interface SmogBand {
+  polygon: [number, number][][]   // MultiPolygon rings per ±20 µg band
   pm25: number
   level: 'low' | 'mid' | 'high'
+  count: number
 }
 
 export interface Puff {
@@ -58,7 +58,7 @@ export interface RoutesPayload {
   tradeoff: Tradeoff
   hotspots: { fastest: Hotspot[]; healthy: Hotspot[] }
   explanation: Explanation
-  ui: { map_nodes: PathNode[]; smog: SmogCell[]; puffs: Puff[] }
+  ui: { map_nodes: PathNode[]; smog: SmogBand[]; puffs: Puff[] }
 }
 
 /* ---- AWS ops panel (mirror of backend/api/aws_schemas.py v1) — additive ---- */

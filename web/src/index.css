@@ -133,6 +133,8 @@ button.ghost:hover { border-color: var(--accent); color: var(--text); }
   .split { flex-direction: column; }
   .mapwrap { min-height: 340px; }
   .side { width: 100%; padding: 12px; }
+  .tools { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }
+  .tag { display: none; }
 }
 
 /* ---------- login ---------- */

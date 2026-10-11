@@ -52,7 +52,7 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
     ;(m.getSource('smog') as maplibregl.GeoJSONSource).setData(toFC(payload.ui.smog.map((c) => ({
       type: 'Feature' as const,
       properties: { pm25: c.pm25, level: c.level },
-      geometry: { type: 'Polygon' as const, coordinates: [c.polygon] },
+      geometry: { type: 'MultiPolygon' as const, coordinates: c.polygon.map((r) => [r]) },
     }))))
     ;(m.getSource('puffs') as maplibregl.GeoJSONSource).setData(toFC(payload.ui.puffs.map((p) => ({
       type: 'Feature' as const,
@@ -70,17 +70,9 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
         m.addLayer({
           id: 'smogfill', type: 'fill', source: 'smog',
           paint: {
-            'fill-color': ['match', ['get', 'level'],
-              'high', '#ff5a2d', 'mid', '#b06a4a', '#57646f'],
-            'fill-opacity': 0.3,
-          },
-        })
-        m.addLayer({
-          id: 'smogcore', type: 'fill', source: 'smog',
-          paint: {
-            'fill-color': ['match', ['get', 'level'],
-              'high', '#ff7a4d', 'mid', '#c97b52', '#64717c'],
-            'fill-opacity': 0.42,
+            'fill-color': ['interpolate', ['linear'], ['get', 'pm25'],
+              100, '#2d343a', 160, '#3a4147', 200, '#4d4341', 260, '#68443a', 320, '#8b4a33', 420, '#b85a35'],
+            'fill-opacity': 0.15,
           },
         })
         m.addLayer({
@@ -90,10 +82,10 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
               'high', '#ffa659', 'mid', '#e0854f', '#7b8592'],
             'fill-opacity': 0.6,
           },
-        }, 'smogcore')
+        })
         m.addLayer({ id: 'lineB', type: 'line', source: 'routes', filter: ['==', ['get', 'route'], 'B'],
           layout: { 'line-cap': 'round', 'line-join': 'round' },
-          paint: { 'line-color': '#4fc3ff', 'line-width': 6.5, 'line-opacity': 0.92 } }, 'smogcore')
+          paint: { 'line-color': '#4fc3ff', 'line-width': 6.5, 'line-opacity': 0.92 } }, 'pufffill')
         m.addLayer({ id: 'lineA', type: 'line', source: 'routes', filter: ['==', ['get', 'route'], 'A'],
           layout: { 'line-cap': 'round', 'line-join': 'round' },
           paint: { 'line-color': '#ff6a3d', 'line-width': 3.5, 'line-opacity': 0.98, 'line-dasharray': [1.4, 1.3] } }, 'lineB')
