@@ -11,10 +11,15 @@ from math import cos, pi, radians, sin, sqrt
 KM_PER_DEG_LAT = 111.32
 CELL_KM = 1.0                 # grid step: the 1 km zone resolution
 POLY_KM = 0.78                # blob footprint, km (radius peak < 1.0)
-JITTER_KM = 0.34              # anchor wander inside the cell
-MAX_CELLS = 12
-VERTICES = 22
-PAD_KM = 2.6
+JITTER_KM = 0.3               # anchor wander inside the cell
+MAX_CELLS = 10
+VERTICES = 34                 # more vertices = smoother organic outline
+PAD_KM = 1.4                  # corridor halo — stays near the demo streets
+
+PUFF_KM = 0.05                # street puffs: 50 m organic blobs on the hottest edges
+PUFF_VERTS = 18
+PUFFS_MAX = 6
+PUFF_GAP_KM = 0.22            # one puff per hot pocket, closer pockets get their own
 
 KIND_HIGH, KIND_MID = 250.0, 170.0
 
@@ -89,14 +94,47 @@ def deg_km(km, km_lon, lat=False):
 
 def _radius(seed, theta):
     """Radius (km) = seeded harmonic breathing; clamped so blobs stay irregular."""
-    a1 = 0.18 + (seed % 7) / 100.0
-    a2 = 0.08 + ((seed >> 3) % 7) / 100.0
-    a3 = 0.05 + ((seed >> 5) % 5) / 100.0
-    f = (a1 * sin(2 * theta + (seed % 13) / 2.0)
-         + a2 * sin(3 * theta + ((seed >> 2) % 11) / 3.0)
-         + a3 * sin(5 * theta + ((seed >> 4) % 17) / 5.0))
+    f = _harmony(seed, theta)
     r = POLY_KM * (0.62 + 0.38 * (f + 0.31))
     return max(min(r, 1.0), 0.45)
+
+
+def _harmony(seed, theta):
+    """Seeded 3-harmonic breathing term, shared by corridor cells and street puffs."""
+    a1 = 0.16 + (seed % 7) / 100.0
+    a2 = 0.07 + ((seed >> 3) % 7) / 100.0
+    a3 = 0.05 + ((seed >> 5) % 5) / 100.0
+    return (a1 * sin(2 * theta + (seed % 13) / 2.0)
+            + a2 * sin(3 * theta + ((seed >> 2) % 11) / 3.0)
+            + a3 * sin(5 * theta + ((seed >> 4) % 17) / 5.0))
+
+
+def build_puffs(points):
+    """50-m organic street puffs anchored on the hottest edges (seeded by edge id).
+
+    One puff per hot pocket (>350 m apart), radius breathes but never exceeds 50 m.
+    """
+    puffs, anchors = [], []
+    for h in sorted(points, key=lambda x: (-x["pm25"], x["id"])):
+        s = _seed_int("puff", h["id"])
+        km_lon = KM_PER_DEG_LAT * max(cos(radians(h["lat"])), 0.25)
+        if any(_km(h["lon"], h["lat"], a[0], a[1], km_lon) < PUFF_GAP_KM for a in anchors):
+            continue
+        anchors.append((h["lon"], h["lat"]))
+        ring = []
+        for k in range(PUFF_VERTS):
+            theta = 2 * pi * k / PUFF_VERTS
+            r = min(PUFF_KM * (0.86 + 0.4 * _harmony(s + k, theta)), PUFF_KM)
+            ring.append([
+                round(h["lon"] + deg_km(r * cos(theta), km_lon), 5),
+                round(h["lat"] + deg_km(r * sin(theta), km_lon, lat=True), 5),
+            ])
+        ring.append(ring[0])
+        puffs.append({"polygon": ring, "pm25": round(h["pm25"], 1),
+                      "level": level_of(h["pm25"]), "id": h["id"]})
+        if len(puffs) >= PUFFS_MAX:
+            break
+    return puffs
 
 
 def _seed_int(*parts):

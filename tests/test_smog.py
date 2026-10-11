@@ -1,5 +1,6 @@
 """Rules for the 1-km smog layer: organic shapes, determinism, honest levels."""
 import unittest
+from math import cos, radians
 
 from backend.engine.smog import build_smog, level_of
 
@@ -36,7 +37,24 @@ class TestSmogRules(unittest.TestCase):
         self.assertEqual(level_of(250.0), "high")
 
     def test_cell_count_is_capped(self):
-        from backend.engine.smog import MAX_CELLS
+        from backend.engine.smog import MAX_CELLS, PUFF_KM, PUFFS_MAX
+        from backend.engine.smog import build_puffs
+        puffs = build_puffs([{"id": f"u{i}-v{i}", "lat": 28.70 + 0.004 * i,
+                              "lon": 77.12 + 0.004 * i, "pm25": 380.0 - 12 * i}
+                             for i in range(8)])
+        self.assertEqual(build_puffs([{"id": "p", "lat": 28.71, "lon": 77.13, "pm25": 400.0}]),
+                         build_puffs([{"id": "p", "lat": 28.71, "lon": 77.13, "pm25": 400.0}]))
+        self.assertGreaterEqual(len(puffs), 5, "8 spread points must yield ≥5 puffs")
+        self.assertLessEqual(len(puffs), PUFFS_MAX)
+        for p in puffs:
+            ring = p["polygon"][:-1]
+            ax = sum(pt[0] for pt in ring) / len(ring)
+            ay = sum(pt[1] for pt in ring) / len(ring)
+            km_lon = 111.32 * cos(radians(ay))
+            r_km = max((((px[0] - ax) * km_lon) ** 2 + ((px[1] - ay) * 111.32) ** 2) ** 0.5
+                       for px in ring)
+            self.assertLessEqual(r_km, PUFF_KM * 1.05,
+                                 "a 50 m puff must never exceed its 50 m radius promise")
         self.assertLessEqual(len(build_smog(BOUNCE, HOTS, 200.0)), MAX_CELLS)
 
 

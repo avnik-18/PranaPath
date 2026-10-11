@@ -23,6 +23,13 @@ export interface SmogCell {
   level: 'low' | 'mid' | 'high'
 }
 
+export interface Puff {
+  polygon: [number, number][]
+  pm25: number
+  level: 'low' | 'mid' | 'high'
+  id: string
+}
+
 export interface Hotspot {
   edge_id: string
   pm25_ug_m3: number
@@ -51,7 +58,7 @@ export interface RoutesPayload {
   tradeoff: Tradeoff
   hotspots: { fastest: Hotspot[]; healthy: Hotspot[] }
   explanation: Explanation
-  ui: { map_nodes: PathNode[]; smog: SmogCell[] }
+  ui: { map_nodes: PathNode[]; smog: SmogCell[]; puffs: Puff[] }
 }
 
 /* ---- AWS ops panel (mirror of backend/api/aws_schemas.py v1) — additive ---- */

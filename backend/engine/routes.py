@@ -57,8 +57,10 @@ def self_smog(g, panel, route_edges):
     for rid in ("route_fastest", "route_healthy"):
         pts += _pts(g, panel[rid]["path"])
     baseline = sum(e["pm25_ug_m3"] for e in route_edges) / max(len(route_edges), 1)
-    hot = sorted({e["id"]: e for e in route_edges}.values(), key=lambda e: -e["pm25_ug_m3"])[:4]
-    return sm.build_smog(pts, _hot_points(g, hot), baseline)
+    hot = sorted({e["id"]: e for e in route_edges}.values(), key=lambda e: -e["pm25_ug_m3"])
+    hot_enough = [e for e in hot if e["pm25_ug_m3"] >= sm.KIND_MID][:8]
+    panel["puffs"] = sm.build_puffs(_hot_points(g, hot_enough))
+    return sm.build_smog(pts, _hot_points(g, hot[:4]), baseline)
 
 
 def _pts(g, ids):
@@ -72,6 +74,7 @@ def _hot_points(g, edges):
         u, v = e["id"].split("-")
         a2, b2 = g["nodes"][u], g["nodes"][v]
         pts.append({
+            "id": e["id"],
             "lat": (a2["lat"] + b2["lat"]) / 2,
             "lon": (a2["lon"] + b2["lon"]) / 2,
             "pm25": e["pm25_ug_m3"],

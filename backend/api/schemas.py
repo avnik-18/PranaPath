@@ -15,7 +15,7 @@ def routes_response(panel, explanation):
         "tradeoff": panel["tradeoff"],
         "hotspots": panel["hotspots"],
         "explanation": explanation,           # {sentence, source, validated}
-        "ui": {"map_nodes": panel["path_nodes"], "smog": panel.get("smog", [])},
+        "ui": {"map_nodes": panel["path_nodes"], "smog": panel.get("smog", []), "puffs": panel.get("puffs", [])},
     }
 
 

@@ -48,10 +48,16 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
     if (!m.getSource('routes')) m.addSource('routes', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     ;(m.getSource('routes') as maplibregl.GeoJSONSource).setData(toFC([line(payload.route_fastest.path), line(payload.route_healthy.path)]))
     if (!m.getSource('smog')) m.addSource('smog', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
+    if (!m.getSource('puffs')) m.addSource('puffs', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     ;(m.getSource('smog') as maplibregl.GeoJSONSource).setData(toFC(payload.ui.smog.map((c) => ({
       type: 'Feature' as const,
-      properties: { pm25: c.pm25 },
+      properties: { pm25: c.pm25, level: c.level },
       geometry: { type: 'Polygon' as const, coordinates: [c.polygon] },
+    }))))
+    ;(m.getSource('puffs') as maplibregl.GeoJSONSource).setData(toFC(payload.ui.puffs.map((p) => ({
+      type: 'Feature' as const,
+      properties: { pm25: p.pm25, level: p.level },
+      geometry: { type: 'Polygon' as const, coordinates: [p.polygon] },
     }))))
     if (!m.getSource('hotspots')) m.addSource('hotspots', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     ;(m.getSource('hotspots') as maplibregl.GeoJSONSource).setData(toFC(hotspots.map((h) => ({
@@ -77,6 +83,14 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
             'fill-opacity': 0.42,
           },
         })
+        m.addLayer({
+          id: 'pufffill', type: 'fill', source: 'puffs',
+          paint: {
+            'fill-color': ['match', ['get', 'level'],
+              'high', '#ffa659', 'mid', '#e0854f', '#7b8592'],
+            'fill-opacity': 0.6,
+          },
+        }, 'smogcore')
         m.addLayer({ id: 'lineB', type: 'line', source: 'routes', filter: ['==', ['get', 'route'], 'B'],
           layout: { 'line-cap': 'round', 'line-join': 'round' },
           paint: { 'line-color': '#4fc3ff', 'line-width': 6.5, 'line-opacity': 0.92 } }, 'smogcore')
