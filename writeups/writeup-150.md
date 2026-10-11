@@ -5,7 +5,8 @@ days — maps optimize minutes, never lungs.
 
 **Built:** EcoRoute AI ranks routes by **inhaled dose** — `dose(µg)=Σ C×IR×minutes`
 computed deterministically per segment over a real OpenStreetMap cut (4,939 junctions).
-Demo trip **+0.1 min → −9.1% dose**, worst street named. A caged AI explains the choice in one
+Demo trip **+3.1 min → −10.6% dose** (two cities: Delhi + Bengaluru real OSM cuts), priced by a
+cap you choose. A caged AI explains the choice in one
 sentence; a validator rejects any digit or ID not received from the engine; outage → template
 (tested).
 

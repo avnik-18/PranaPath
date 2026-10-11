@@ -8,10 +8,14 @@ pollution dose per street segment**, computed with the published formula
 `dose(µg) = C(µg/m³) × IR(m³/h) × minutes/60` (breathing rates: walk 1.4, cycle 2.3, jog 3.0
 m³/h). The engine runs **two simultaneous Dijkstras** on a real OpenStreetMap cut of the
 Rohini–Pitampura corridor (4,939 junctions, 5,692 segments, largest connected component,
-road-class pace conversion): regular `fastest`, and `breath-safe`, whose edge cost is minutes
-penalized by air-quality weight. Result on the demo trip (`ashok_vihar → model_town`, jog):
-**+0.1 minute → −9.1% inhaled dose** (14.9 vs 14.8 min; 114.2 vs 125.6 µg), with the 420 µg/m³
-market hot-corridor named in the panel.
+road-class pace conversion): regular `fastest`, and `breath-safe` — the **dose-optimal route
+under a time cap you choose** (no cap / ≤1.05× / ≤1.1× / ≤1.35× / ≤1.5× / ≤2× of the fastest),
+solved exactly with Pareto label-setting, then minimizing real dose. Each street's AQI reads a
+shared **Gaussian exposure-source table** — hot plumes (markets, expressway) and clean park
+pools — the same table that renders the 50-m smog field behind the map; every blob on the map is
+clickable and answers with its own reading. Result on the Delhi demo trip (`ashok_vihar →
+model_town`, jog): **+3.1 minutes → −10.6% inhaled dose** (17.9 vs 14.8 min; 119.2 vs 133.4 µg);
+a second city, **Bengaluru** (Koramangala–Indiranagar, Silk Board plume), loads one select away.
 
 **Why the AI can't lie (the prize-grade idea):** a caged-expert pattern. The deterministic
 engine produces every number; an explainer agent only **words** the journey. The agent's

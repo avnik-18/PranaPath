@@ -8,7 +8,7 @@ Every narration sentence has something on screen at that second (Beacon rule).
 |---|---|---|---|
 | 1 · 0:00–0:16 | "October Delhi. Your navigation optimises TIME — not what your lungs get." | dark hero card, kicker `BAD-AIR DAY` | — |
 | 2 · 0:16–0:32 | "Rank routes by inhaled dose — a published formula, deterministic engine, no AI in the math." | dose formula card | — |
-| 3 · 0:32–0:48 | "Measured trip: Route B costs +0.1 minutes, inhales 9.1% LESS. Worst segment named." | two route cards, +0.1→−9.1% pill, hot-edge badge | — |
+| 3 · 0:32–0:48 | "Measured trip: Route B costs +3.1 minutes, inhales 10.6% LESS. The hot street stays on screen." | two route cards, +3.1→−10.6% pill, hot-edge badge | — |
 | 4 · 0:48–1:04 | "Why trust it? The engine computes, the AI words it — one sentence, validator-gated." | explanation quote + validator badges | — |
 | 5 · 1:04–1:21 | "The product: real Delhi roads, hot corridor flagged, doses on the side." | LIVE MAP (beat5 wide shot) | — |
 | 6 · 1:21–1:37 | "Real OSM roads and real dose math; pollution bands modelled until the live refresh lands." | honest-limits card | — |

@@ -5,7 +5,7 @@
 A Delhi jogger's fastest route grazes a market corridor every time. EcoRoute computes the
 **inhaled dose of every street segment** (`dose(µg) = C(µg/m³) × IR(m³/h) × minutes/60`) on a
 real OpenStreetMap graph and returns TWO routes: regular fastest, and breath-safe. A recent
-demo trip: **+0.1 min → −9.1% inhaled dose** (14.9 vs 14.8 minutes; 114.2 vs 125.6 µg).
+demo trip: **+3.1 min → −10.6% inhaled dose** (17.9 vs 14.8 minutes; 119.2 vs 133.4 µg).
 
 - Track: **Air** — Environmental Hacks (WeMakeDevs × AWS, Oct 8–11 2026)
 - Film: `film/final_cut.mp4` (2:21, 9 beats) — the video IS the submission
