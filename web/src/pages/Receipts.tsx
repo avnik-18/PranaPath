@@ -1,9 +1,9 @@
-import { useAwsPanel } from '../../hooks/useAwsPanel'
-import { AwsPanel } from './AwsPanel'
+import { useAwsPanel } from '../hooks/useAwsPanel'
+import { AwsPanel } from '../components/aws/AwsPanel'
 
 type Props = { onBack: () => void }
 
-export function AwsOps(p: Props) {
+export function Receipts(p: Props) {
   const rt = useAwsPanel()
   if (rt.busy) return <div className="loading">reading the ops ledger…</div>
   if (rt.error) return (

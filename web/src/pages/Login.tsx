@@ -1,6 +1,6 @@
 type Props = { onEnter: () => void }
 
-export function LoginGate(p: Props) {
+export function Login(p: Props) {
   return (
     <div className="login">
       <div className="login-card">

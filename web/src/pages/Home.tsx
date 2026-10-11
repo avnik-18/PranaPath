@@ -1,14 +1,14 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useRoutesRuntime } from '../hooks/useRoutesRuntime'
-import { MapView } from './MapView'
-import { RoutePanel } from './RoutePanel'
-import { DoseCompare } from './DoseCompare'
-import { HotspotBadges } from './HotspotBadges'
-import { ExplanationCard } from './ExplanationCard'
+import { MapView } from '../components/MapView'
+import { RoutePanel } from '../components/RoutePanel'
+import { DoseCompare } from '../components/DoseCompare'
+import { HotspotBadges } from '../components/HotspotBadges'
+import { ExplanationCard } from '../components/ExplanationCard'
 
-type Props = { onOpenOps: () => void; onHome?: () => void }
+type Props = { onOpenReceipts: () => void }
 
-export default function RoutingApp(p: Props) {
+export default function Home(p: Props) {
   const rt = useRoutesRuntime('ashok_vihar', 'model_town', 'jog')
   const payload = rt.payload
 
@@ -18,7 +18,7 @@ export default function RoutingApp(p: Props) {
         <div className="brand">
           <span className="logo-dot" />
           <b>EcoRoute AI</b>
-          <span className="tag">breathe-safe routing · Delhi demo corridor</span>
+          <span className="tag">breathe-safe routing · Delhi</span>
         </div>
         <div className="tools">
           <label>
@@ -30,8 +30,7 @@ export default function RoutingApp(p: Props) {
             </select>
           </label>
           {rt.fixture && <span className="pill pill-soft">demo bundle</span>}
-          <button className="ghost" onClick={p.onOpenOps}>aws receipts</button>
-          {p.onHome && <button className="ghost" onClick={p.onHome}>home</button>}
+          <button className="ghost" onClick={p.onOpenReceipts}>receipts</button>
           <button className="ghost" onClick={rt.reload}>reload</button>
         </div>
       </header>
@@ -54,7 +53,7 @@ export default function RoutingApp(p: Props) {
       </main>
 
       <footer className="foot">
-        every number below is computed by the engine (C × IR × minutes, per segment) — the AI only words it. · {new Date().getFullYear()}
+        every number here comes from the engine (C × IR × minutes, per segment) — the AI only words it. · {new Date().getFullYear()}
       </footer>
     </div>
   )
