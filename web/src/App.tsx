@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Home from './pages/Home'
 import { Login } from './pages/Login'
 import { Receipts } from './pages/Receipts'
@@ -8,6 +8,12 @@ export default function App() {
   const [entered, setEntered] = useState(() =>
     /#app(|-direct)/.test(window.location.hash))
   const [view, setView] = useState<'home' | 'receipts'>('home')
+
+  useEffect(() => {
+    const bump = () => { if (/#app(|-direct)/.test(window.location.hash)) setEntered(true) }
+    window.addEventListener('hashchange', bump)
+    return () => window.removeEventListener('hashchange', bump)
+  }, [])
 
   if (!entered) return <Login onEnter={() => setEntered(true)} />
   if (view === 'receipts') return <Receipts onBack={() => setView('home')} />

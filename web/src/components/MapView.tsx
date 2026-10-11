@@ -107,9 +107,9 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
     else m.once('load', paint)
   }, [payload])
 
-  /* route tag: unzip into two features below (sorted by draw order) */
+  /* route tag: merged into each feature's existing properties (smog level/pm25 survive) */
   function toFC(features: GeoJSON.Feature[]): GeoJSON.FeatureCollection {
-    const tagged = features.map((f, i) => ({ ...f, properties: { route: i === 0 ? 'A' : 'B' } }))
+    const tagged = features.map((f, i) => ({ ...f, properties: { ...f.properties, route: i === 0 ? 'A' : 'B' } }))
     return { type: 'FeatureCollection', features: tagged }
   }
 
