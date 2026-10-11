@@ -4,13 +4,13 @@ import type { AwsPanelPayload, RoutesPayload } from '../types'
 const FIXTURE = import.meta.env.VITE_FIXTURE !== 'false'
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
 
-export async function fetchPanel(origin: string, dest: string, mode: string): Promise<RoutesPayload> {
+export async function fetchPanel(trip: string, mode: string): Promise<RoutesPayload> {
   if (FIXTURE || !BASE) {
-    const r = await fetch(new URL('fixture-panel.json', window.location.href))
-    if (!r.ok) throw new Error(`fixture unavailable (${r.status})`)
+    const r = await fetch(new URL(`fixture-${trip}-${mode}.json`, window.location.href))
+    if (!r.ok) throw new Error(`fixture-${trip}-${mode} unavailable (${r.status})`)
     return (await r.json()) as RoutesPayload
   }
-  const url = `${BASE}/routes?origin=${encodeURIComponent(origin)}&dest=${encodeURIComponent(dest)}&mode=${mode}`
+  const url = `${BASE}/routes?trip=${encodeURIComponent(trip)}&mode=${mode}`
   const r = await fetch(url)
   if (!r.ok) throw new Error(`api ${r.status}`)
   return (await r.json()) as RoutesPayload

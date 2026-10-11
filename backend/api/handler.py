@@ -17,9 +17,13 @@ def _graph():
     return _GRAPH
 
 
-def handle_routes(origin, dest, mode):
+def handle_routes(origin, dest, mode, trip=None):
     from .schemas import routes_response, error_response
 
+    if trip:
+        from .trips import resolve
+        r = resolve(trip)
+        origin, dest = r["origin"], r["dest"]
     try:
         panel = _routes().compare_routes(_graph(), origin, dest, mode)
     except KeyError as exc:                      # unknown node/landmark -> clean 400, not 500

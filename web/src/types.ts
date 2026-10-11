@@ -12,7 +12,14 @@ export interface RouteShape {
   path: string[]
   via: string[]
   minutes: number
+  km: number
   dose_ug: number
+}
+
+export interface SmogCell {
+  polygon: [number, number][]
+  pm25: number
+  level: 'low' | 'mid' | 'high'
 }
 
 export interface Hotspot {
@@ -43,7 +50,7 @@ export interface RoutesPayload {
   tradeoff: Tradeoff
   hotspots: { fastest: Hotspot[]; healthy: Hotspot[] }
   explanation: Explanation
-  ui: { map_nodes: PathNode[] }
+  ui: { map_nodes: PathNode[]; smog: SmogCell[] }
 }
 
 /* ---- AWS ops panel (mirror of backend/api/aws_schemas.py v1) — additive ---- */

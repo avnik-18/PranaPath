@@ -8,8 +8,14 @@ import { ExplanationCard } from '../components/ExplanationCard'
 
 type Props = { onOpenReceipts: () => void }
 
+const TRIPS = [
+  { key: 'short', label: 'short · 3.1 km' },
+  { key: 'medium', label: 'medium · 4.0 km' },
+  { key: 'long', label: 'long · 5.7 km' },
+]
+
 export default function Home(p: Props) {
-  const rt = useRoutesRuntime('ashok_vihar', 'model_town', 'jog')
+  const rt = useRoutesRuntime('short', 'jog')
   const payload = rt.payload
 
   return (
@@ -22,11 +28,9 @@ export default function Home(p: Props) {
         </div>
         <div className="tools">
           <label>
-            mode
-            <select value={rt.mode} onChange={(e) => rt.setMode(e.target.value)} disabled={rt.fixture}>
-              <option value="jog">jog</option>
-              <option value="cycle">cycle</option>
-              <option value="walk">walk</option>
+            trip
+            <select value={rt.trip} onChange={(e) => rt.setTrip(e.target.value)}>
+              {TRIPS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </label>
           {rt.fixture && <span className="pill pill-soft">demo bundle</span>}

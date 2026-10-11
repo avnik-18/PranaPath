@@ -172,7 +172,8 @@ button.ghost:hover { border-color: var(--accent); color: var(--text); }
   line-height: 1.7; color: var(--muted); }
 .ops-banner.live { border-left-color: var(--ok); }
 .ops-banner code { color: var(--blue); font-family: Consolas, monospace; }
-.ops-counts { color: var(--muted); font-size: 11px; margin: 14px 0 18px; letter-spacing: .14em; text-transform: uppercase; }
+.ops-counts { color: var(--muted); font-size: 11px; margin: 14px 0 6px; letter-spacing: .14em; text-transform: uppercase; }
+.ops-stack { color: var(--muted); font-size: 12px; line-height: 1.8; margin-bottom: 18px; }
 
 .aws-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(218px, 1fr)); gap: 10px; }
 .aws-svccard { background: var(--panel); border: 1px solid var(--hairline); border-radius: 14px;

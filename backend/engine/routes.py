@@ -46,7 +46,37 @@ def compare_routes(g, origin, dest, mode):
         "fastest": exposure.hotspots(per_a, a["edges"]),
         "healthy": exposure.hotspots(per_b, b["edges"]),
     }
+    panel["smog"] = self_smog(g, panel, a["edges"] + b["edges"])
     return panel
+
+
+def self_smog(g, panel, route_edges):
+    """The 1-km organic haze the map paints under both routes (engine-owned)."""
+    from . import smog as sm
+    pts = []
+    for rid in ("route_fastest", "route_healthy"):
+        pts += _pts(g, panel[rid]["path"])
+    baseline = sum(e["pm25_ug_m3"] for e in route_edges) / max(len(route_edges), 1)
+    hot = sorted({e["id"]: e for e in route_edges}.values(), key=lambda e: -e["pm25_ug_m3"])[:4]
+    return sm.build_smog(pts, _hot_points(g, hot), baseline)
+
+
+def _pts(g, ids):
+    n = g["nodes"]
+    return [{"lat": n[i]["lat"], "lon": n[i]["lon"]} for i in set(ids)]
+
+
+def _hot_points(g, edges):
+    pts = []
+    for e in edges:
+        u, v = e["id"].split("-")
+        a2, b2 = g["nodes"][u], g["nodes"][v]
+        pts.append({
+            "lat": (a2["lat"] + b2["lat"]) / 2,
+            "lon": (a2["lon"] + b2["lon"]) / 2,
+            "pm25": e["pm25_ug_m3"],
+        })
+    return pts
 
 
 # ---------- internals ----------
@@ -113,18 +143,23 @@ def _shape_route(g, rid, found, total_ug, per):
         "path": found["path"],
         "via": found["via"],
         "minutes": found["minutes"],
+        "km": _path_km(g, found["path"]),
         "dose_ug": round(total_ug, 1),
         "dose_per_edge": {k: round(v, 2) for k, v in per.items()},
     }
 
 
-def _pct_down(fast, healthy):
-    if fast <= 0:
+def _path_km(g, ids):
+    """Haversine-free flat-earth distance over the ordered path (demo scale)."""
+    from .smog import KM_PER_DEG_LAT
+    from math import cos, radians, sqrt
+    if len(ids) < 2:
         return 0.0
-    p = 100.0 * (1 - _safe(fast, healthy))
-    return round(p, 1)
-
-
-def _safe(fast, healthy):
-    ratio = healthy / fast
-    return 1.0 - ratio if ratio <= 1.0 else 0.0
+    km_lon = KM_PER_DEG_LAT * max(cos(radians(g["nodes"][ids[0]]["lat"])), 0.25)
+    total = 0.0
+    for u, v in zip(ids, ids[1:]):
+        a2, b2 = g["nodes"][u], g["nodes"][v]
+        dx = (b2["lon"] - a2["lon"]) * km_lon
+        dy = (b2["lat"] - a2["lat"]) * KM_PER_DEG_LAT
+        total += sqrt(dx * dx + dy * dy)
+    return round(total, 1)

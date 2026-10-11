@@ -17,6 +17,7 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
       fadeDuration: 0,
     })
     map.current.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+    ;(window as unknown as { __ecorouteMap?: maplibregl.Map }).__ecorouteMap = map.current
   }, [])
 
   useEffect(() => {
@@ -46,6 +47,12 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
 
     if (!m.getSource('routes')) m.addSource('routes', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     ;(m.getSource('routes') as maplibregl.GeoJSONSource).setData(toFC([line(payload.route_fastest.path), line(payload.route_healthy.path)]))
+    if (!m.getSource('smog')) m.addSource('smog', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
+    ;(m.getSource('smog') as maplibregl.GeoJSONSource).setData(toFC(payload.ui.smog.map((c) => ({
+      type: 'Feature' as const,
+      properties: { pm25: c.pm25 },
+      geometry: { type: 'Polygon' as const, coordinates: [c.polygon] },
+    }))))
     if (!m.getSource('hotspots')) m.addSource('hotspots', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     ;(m.getSource('hotspots') as maplibregl.GeoJSONSource).setData(toFC(hotspots.map((h) => ({
       type: 'Feature' as const,
@@ -54,12 +61,20 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
     }))))
 
       if (!m.getLayer('lineB')) {
+        m.addLayer({
+          id: 'smogfill', type: 'fill', source: 'smog',
+          paint: {
+            'fill-color': ['match', ['get', 'level'],
+              'high', '#ff6a3d', 'mid', '#8d5340', '#3d4a54'],
+            'fill-opacity': 0.18,
+          },
+        })
         m.addLayer({ id: 'lineB', type: 'line', source: 'routes', filter: ['==', ['get', 'route'], 'B'],
-          paint: { 'line-color': '#4fc3ff', 'line-width': 9, 'line-opacity': 0.85 } })
+          paint: { 'line-color': '#4fc3ff', 'line-width': 9, 'line-opacity': 0.85 } }, 'smogfill')
         m.addLayer({ id: 'lineA', type: 'line', source: 'routes', filter: ['==', ['get', 'route'], 'A'],
-          paint: { 'line-color': '#ff6a3d', 'line-width': 5, 'line-opacity': 0.98, 'line-dasharray': [1.6, 1.2] } })
+          paint: { 'line-color': '#ff6a3d', 'line-width': 5, 'line-opacity': 0.98, 'line-dasharray': [1.6, 1.2] } }, 'lineB')
         m.addLayer({ id: 'hotdot', type: 'circle', source: 'hotspots',
-          paint: { 'circle-radius': 12, 'circle-color': '#ffdd55', 'circle-stroke-color': '#ff6a3d', 'circle-stroke-width': 2 } })
+          paint: { 'circle-radius': 12, 'circle-color': '#ffdd55', 'circle-stroke-color': '#ff6a3d', 'circle-stroke-width': 2 } }, 'lineA')
         m.fitBounds(bounds(nodePos), { padding: 70, duration: 400 })
       }
     }

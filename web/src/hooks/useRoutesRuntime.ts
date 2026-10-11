@@ -8,38 +8,34 @@ export type RuntimeState = {
   busy: boolean
   error: string | null
   fixture: boolean
-  origin: string
-  dest: string
+  trip: string
   mode: string
-  setTrip: (origin: string, dest: string) => void
+  setTrip: (trip: string) => void
   setMode: (mode: string) => void
   reload: () => void
 }
 
 const FIXTURE = import.meta.env.VITE_FIXTURE !== 'false'
 
-export function useRoutesRuntime(initialOrigin: string, initialDest: string, initialMode: string): RuntimeState {
+export function useRoutesRuntime(initialTrip: string, initialMode: string): RuntimeState {
   const [payload, setPayload] = useState<RoutesPayload | null>(null)
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [origin, setOrigin] = useState(initialOrigin)
-  const [dest, setDest] = useState(initialDest)
-  const [mode, setModeState] = useState(initialMode)
+  const [trip, setTrip] = useState(initialTrip)
+  const [mode, setMode] = useState(initialMode)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let alive = true
     setBusy(true)
     setError(null)
-    fetchPanel(origin, dest, mode)
+    fetchPanel(trip, mode)
       .then((p) => { if (alive) { setPayload(p); setBusy(false) } })
       .catch((e: unknown) => { if (alive) { setError(String(e)); setBusy(false) } })
     return () => { alive = false }
-  }, [origin, dest, mode, tick])
+  }, [trip, mode, tick])
 
-  const setTrip = useCallback((o: string, d: string) => { setOrigin(o); setDest(d) }, [])
-  const setMode = useCallback((m: string) => setModeState(m), [])
   const reload = useCallback(() => setTick((t) => t + 1), [])
 
-  return { payload, busy, error, fixture: FIXTURE, origin, dest, mode, setTrip, setMode, reload }
+  return { payload, busy, error, fixture: FIXTURE, trip, mode, setTrip, setMode, reload }
 }

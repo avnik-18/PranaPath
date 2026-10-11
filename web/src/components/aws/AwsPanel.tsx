@@ -1,5 +1,4 @@
 import type { AwsPanelData } from '../../types'
-import { AwsServiceCard } from './AwsServiceCard'
 import { AwsEventFeed } from './AwsEventFeed'
 import { EnvChecklist } from './EnvChecklist'
 import { GoLiveCard } from './GoLiveCard'
@@ -39,8 +38,7 @@ export function AwsPanel(p: Props) {
       )}
 
       <div className="ops-counts">{d.counts.services} services · {d.counts.green_live} live-verified · {d.counts.events} events · {d.counts.receipts} receipts</div>
-
-      <AwsServiceCard inventory={d.inventory} />
+      <div className="ops-stack">{d.inventory.map((i) => i.service).join(' · ')}</div>
 
       <div className="ops-duo">
         <div className="ops-col">
