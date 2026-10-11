@@ -8,21 +8,37 @@ import { ExplanationCard } from '../components/ExplanationCard'
 
 type Props = { onOpenReceipts: () => void }
 
-const TRIPS = [
-  { key: 'short', label: 'short · 3.1 km' },
-  { key: 'medium', label: 'medium · 4.0 km' },
-  { key: 'long', label: 'long · 5.7 km' },
+const CITIES = [
+  { key: 'delhi', label: 'Delhi' },
+  { key: 'blr', label: 'Bengaluru' },
 ]
+
+const TRIPS: Record<string, { key: string; label: string }[]> = {
+  delhi: [
+    { key: 'short', label: 'short · 3.1 km' },
+    { key: 'medium', label: 'medium · 4.0 km' },
+    { key: 'long', label: 'long · 5.7 km' },
+  ],
+  blr: [
+    { key: 'short', label: 'Koramangala · 4.8 km' },
+    { key: 'medium', label: 'Indiranagar · 4.8 km' },
+    { key: 'long', label: 'Jayanagar · 4.5 km' },
+  ],
+}
 
 const BUDGETS = [
   { key: 'any', label: 'no cap' },
   { key: '1.05', label: '≤ 1.05× fast' },
   { key: '1.1', label: '≤ 1.1× fast' },
+  { key: '1.35', label: '≤ 1.35× fast' },
+  { key: '1.5', label: '≤ 1.5× fast' },
+  { key: '2.0', label: '≤ 2× fast' },
 ]
 
 export default function Home(p: Props) {
-  const rt = useRoutesRuntime('short', 'jog', 'any')
+  const rt = useRoutesRuntime('delhi', 'short', 'jog', 'any')
   const payload = rt.payload
+  const tripRows = TRIPS[rt.city] ?? TRIPS.delhi
 
   return (
     <div className="shell">
@@ -30,13 +46,19 @@ export default function Home(p: Props) {
         <div className="brand">
           <span className="logo-dot" />
           <b>EcoRoute AI</b>
-          <span className="tag">breathe-safe routing · Delhi</span>
+          <span className="tag">breathe-safe routing · India</span>
         </div>
         <div className="tools">
           <label>
+            city
+            <select value={rt.city} onChange={(e) => { rt.setCity(e.target.value); rt.setTrip('short') }}>
+              {CITIES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+            </select>
+          </label>
+          <label>
             trip
             <select value={rt.trip} onChange={(e) => rt.setTrip(e.target.value)}>
-              {TRIPS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+              {tripRows.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </label>
           <label>

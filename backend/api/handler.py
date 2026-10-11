@@ -6,32 +6,39 @@ Glue only — no engine math, no AI calls beyond delegating to guardian.
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
-_GRAPH = None
 
 
-def _graph():
-    global _GRAPH
-    if _GRAPH is None:
+_GRAPHS = {}
+
+def _graph(city=None):
+    key = _city(city)
+    if key not in _GRAPHS:
         from ..engine import graph as gy
-        _GRAPH = gy.load_graph(str(_ROOT / "data" / "delhi_graph.json"))
-    return _GRAPH
+        _GRAPHS[key] = gy.load_graph(str(_ROOT / "data" / f"{key}_graph.json"))
+    return _GRAPHS[key]
 
 
-def handle_routes(origin, dest, mode, trip=None, budget=None):
+def _city(raw):
+    """'blr' → 'blr'; anything else stays on delhi."""
+    return raw if raw in ("blr", "delhi") else "delhi"
+
+
+def handle_routes(origin, dest, mode, trip=None, budget=None, city=None):
     from .schemas import routes_response, error_response
 
+    key = _city(city)
     if trip:
         from .trips import resolve
-        r = resolve(trip)
+        r = resolve(trip, key)
         origin, dest = r["origin"], r["dest"]
     try:
-        panel = _routes().compare_routes(_graph(), origin, dest, mode, budget=_budget(budget))
+        panel = _routes().compare_routes(_graph(key), origin, dest, mode, budget=_budget(budget))
     except KeyError as exc:                      # unknown node/landmark -> clean 400, not 500
         return error_response("unknown_node", str(exc))
     if not panel.get("ok"):
         return error_response("unreachable", panel.get("error", ""))
 
-    panel["path_nodes"] = shaped_nodes(panel)
+    panel["path_nodes"] = shaped_nodes(panel, _graph(key))
     explanation = _explain().explain_route(panel)
     return routes_response(panel, explanation)
 
@@ -58,9 +65,8 @@ def _budget(raw):
         return None
 
 
-def shaped_nodes(panel):
+def shaped_nodes(panel, g):
     """Deduped route corridors (A ∪ B) for the map, lat/lon + names from the graph."""
-    g = _graph()
     seen, out = set(), []
     for nid in panel["route_fastest"]["path"] + panel["route_healthy"]["path"]:
         if nid not in seen:

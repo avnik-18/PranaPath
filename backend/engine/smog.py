@@ -32,8 +32,12 @@ def level_of(pm):
     return "high" if pm >= KIND_HIGH else ("mid" if pm >= KIND_MID else "low")
 
 
-def find_field(path_nodes, hot_points, baseline_pm):
-    """path_nodes: [{lat,lon}]; hot_points: [{lat,lon,pm25}]; -> band MultiPolygons."""
+def find_field(path_nodes, sources, baseline_pm):
+    """path_nodes: [{lat,lon}]; sources: [{lat,lon,peak,sigma_m}]; -> band MultiPolygons.
+
+    Every blob reads the SAME gaussian mixture the graph's streets read:
+    pm(x,y) = base + Σ peakᵢ·exp(−(dᵢ/σᵢ)²), then ±6% seeded micro-weather.
+    """
     pts = [(p["lat"], p["lon"]) for p in path_nodes]
     if not pts:
         return []
@@ -59,7 +63,7 @@ def find_field(path_nodes, hot_points, baseline_pm):
             jy, jx = _anchor_shift(row, col)
             plon = lon0 + (col + jx) * step_lon
             plat = lat0 + (row + jy) * step_lat * 0.87
-            pm = _blob_pm(plon, plat, hot_points, baseline_pm, km_lon) * _micro(row, col)
+            pm = _gaussian_field_pm(plon, plat, sources, baseline_pm, km_lon, _micro(row, col))
             band = int(round(pm / FIELD_BAND_UG) * FIELD_BAND_UG)
             ring = _field_ring(plat, plon, km_lon, row, col)
             bands.setdefault(band, []).append(ring)
@@ -73,6 +77,17 @@ def find_field(path_nodes, hot_points, baseline_pm):
             "count": len(bands[band]),
         })
     return out
+
+
+def _gaussian_field_pm(plon, plat, sources, base_pm, km_lon, micro=1.0):
+    """pm = (base + Σ peakᵢ·exp(−(dᵢ/σᵢ)²)) × micro, clamped to the honest range."""
+    from math import exp
+    total = float(base_pm)
+    for s in sources:
+        d = _km(plon, plat, s["lon"], s["lat"], km_lon)
+        sigma_km = max(s.get("sigma_m", 600.0) / 1000.0, 0.05)
+        total += s["peak"] * exp(-((d / sigma_km) ** 2))
+    return max(min(total * micro, 900.0), 40.0)
 
 
 def _field_ring(plat, plon, km_lon, row, col):

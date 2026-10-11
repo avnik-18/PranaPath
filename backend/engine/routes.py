@@ -8,7 +8,8 @@ Never consults an AI; deterministic for identical inputs.
 
 PACE = {"walk": 1.25, "jog": 0.9, "cycle": 0.7}   # minutes multiplier per mode
 PM_REFERENCE = 150.0                              # µg/m³ 'city-day neutral'
-HEALTH_SENSITIVITY = 4.0                          # health-cost weight × (pm25/reference)
+HEALTH_SENSITIVITY = 10.0                         # health-cost weight × (pm25/reference)
+DEFAULT_BUDGET = 1.35                             # 'breathe-safe' = cleanest within +35% time
 
 
 def compare_routes(g, origin, dest, mode, budget=None):
@@ -17,7 +18,7 @@ def compare_routes(g, origin, dest, mode, budget=None):
     scale = PACE.get(mode) or (lambda: (_ for _ in ()).throw(ValueError(f"mode {mode!r}")))()
 
     a = _search(g, o, d, scale=scale, use_health=False)
-    b = _budgeted(g, o, d, scale, a["minutes"], budget)
+    b = _budgeted(g, o, d, scale, a["minutes"], budget, mode)
     if a is None:
         return {"ok": False, "error": f"unreachable: {origin} -> {dest}"}
 
@@ -58,18 +59,18 @@ def self_smog(g, panel, route_edges):
         pts += _pts(g, panel[rid]["path"])
     baseline = sum(e["pm25_ug_m3"] for e in route_edges) / max(len(route_edges), 1)
     hot = sorted({e["id"]: e for e in route_edges}.values(), key=lambda e: -e["pm25_ug_m3"])
-    hot_enough = [e for e in hot if e["pm25_ug_m3"] >= sm.KIND_MID][:8]
-    panel["puffs"] = sm.build_puffs(_hot_points(g, hot_enough))
-    return sm.find_field(pts, _hot_points(g, hot[:4]), baseline)
+    panel["puffs"] = sm.build_puffs(_hot_points(g, hot[:6]))
+    sources = g.get("sources", [])
+    return sm.find_field(pts, sources, baseline)
 
 
-def _budgeted(g, o, d, scale, fastest_min, budget):
-    """budget=None → unconstrained health search; budget x → Pareto labels under cap."""
-    if not budget or budget <= 0:
-        return _search(g, o, d, scale=scale, use_health=True)
+def _budgeted(g, o, d, scale, fastest_min, budget, mode):
+    """'breathe-safe' = the real-dose-minimising route whose minutes ≤ budget×fastest."""
+    value = DEFAULT_BUDGET if not budget or budget <= 0 else budget
     from .constrained import search_with_cap
-    r = search_with_cap(g, o, d, scale, cap_min=fastest_min * budget,
-                        health_w=HEALTH_SENSITIVITY, pm_ref=PM_REFERENCE)
+    from .exposure import IR_M3H
+    r = search_with_cap(g, o, d, scale, cap_min=fastest_min * value + 0.25,
+                        health_w=HEALTH_SENSITIVITY, pm_ref=PM_REFERENCE, ir=IR_M3H.get(mode, 3.0))
     if r is None:                        # cap unreachable (cap too tight) → health search
         return _search(g, o, d, scale=scale, use_health=True)
     r["via"] = _via_names(g, r["path"])

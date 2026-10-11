@@ -1,4 +1,4 @@
-"""Rules for the AQI blob field: organic shapes, full coverage, honest bands."""
+"""Rules for the AQI blob field: organic shapes, full coverage, gaussian bands."""
 import unittest
 from math import cos, radians
 
@@ -6,13 +6,15 @@ from backend.engine.smog import FIELD_R_KM, MAX_BLOBS, PUFF_KM, PUFFS_MAX, build
 
 BOUNCE = [{"lat": 28.70, "lon": 77.12}, {"lat": 28.72, "lon": 77.15},
           {"lat": 28.69, "lon": 77.17}]
-HOTS = [{"lat": 28.705, "lon": 77.13, "pm25": 420.0},
-        {"lat": 28.715, "lon": 77.16, "pm25": 310.0}]
+SOURCES = [
+    {"lat": 28.7005, "lon": 77.1215, "peak": 800.0, "sigma_m": 520.0},
+    {"lat": 28.7125, "lon": 77.1230, "peak": -170.0, "sigma_m": 1100.0},
+]
 
 
 class TestFieldRules(unittest.TestCase):
     def setUp(self):
-        self.field = find_field(BOUNCE, HOTS, 180.0)
+        self.field = find_field(BOUNCE, SOURCES, 150.0)
 
     def test_every_blob_is_organic_and_closed(self):
         self.assertGreater(len(self.field), 0, "corridor must produce a blob field")
@@ -47,13 +49,15 @@ class TestFieldRules(unittest.TestCase):
 
     def test_bands_differ_and_hot_band_exists(self):
         bands = {band["pm25"] for band in self.field}
-        self.assertGreaterEqual(len(bands), 3, "many blobs with DIFFERENT aqi")
-        self.assertGreaterEqual(max(bands), 300, "the 420 hotspot must lead a band")
+        self.assertGreaterEqual(len(bands), 3, "blobs carry MANY different aqi bands")
+        self.assertGreaterEqual(max(bands), 400, "the gaussian plume must lead a hot band")
+        self.assertLessEqual(min(bands), 140, "the clean pool must show a cold band")
         for band in self.field:
             self.assertEqual(band["level"], level_of(band["pm25"]))
+            self.assertTrue(40.0 <= band["pm25"] <= 900.0, "field stays in the honest range")
 
     def test_same_inputs_same_field(self):
-        self.assertEqual(self.field, find_field(BOUNCE, HOTS, 180.0))
+        self.assertEqual(self.field, find_field(BOUNCE, SOURCES, 150.0))
 
     def test_blob_budget_is_bounded(self):
         total = sum(band["count"] for band in self.field)

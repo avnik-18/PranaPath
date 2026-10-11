@@ -8,9 +8,11 @@ export type RuntimeState = {
   busy: boolean
   error: string | null
   fixture: boolean
+  city: string
   trip: string
   mode: string
   budget: string
+  setCity: (city: string) => void
   setTrip: (trip: string) => void
   setMode: (mode: string) => void
   setBudget: (budget: string) => void
@@ -19,10 +21,11 @@ export type RuntimeState = {
 
 const FIXTURE = import.meta.env.VITE_FIXTURE !== 'false'
 
-export function useRoutesRuntime(initialTrip: string, initialMode: string, initialBudget: string): RuntimeState {
+export function useRoutesRuntime(initialCity: string, initialTrip: string, initialMode: string, initialBudget: string): RuntimeState {
   const [payload, setPayload] = useState<RoutesPayload | null>(null)
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [city, setCity] = useState(initialCity)
   const [trip, setTrip] = useState(initialTrip)
   const [mode, setMode] = useState(initialMode)
   const [budget, setBudget] = useState(initialBudget)
@@ -32,13 +35,13 @@ export function useRoutesRuntime(initialTrip: string, initialMode: string, initi
     let alive = true
     setBusy(true)
     setError(null)
-    fetchPanel(trip, mode, budget)
+    fetchPanel(city, trip, mode, budget)
       .then((p) => { if (alive) { setPayload(p); setBusy(false) } })
       .catch((e: unknown) => { if (alive) { setError(String(e)); setBusy(false) } })
     return () => { alive = false }
-  }, [trip, mode, budget, tick])
+  }, [city, trip, mode, budget, tick])
 
   const reload = useCallback(() => setTick((t) => t + 1), [])
 
-  return { payload, busy, error, fixture: FIXTURE, trip, mode, budget, setTrip, setMode, setBudget, reload }
+  return { payload, busy, error, fixture: FIXTURE, city, trip, mode, budget, setCity, setTrip, setMode, setBudget, reload }
 }

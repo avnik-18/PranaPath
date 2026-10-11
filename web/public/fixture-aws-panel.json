@@ -109,7 +109,7 @@
     "ts": "t+22.8ms",
     "service": "Lambda[engine]",
     "event": "routes + doses computed",
-    "detail": "fastest 18.7 min / 154.8 µg vs breathe-safe 18.8 min / 143.3 µg · 74 segments",
+    "detail": "fastest 18.7 min / 162.2 µg vs breathe-safe 21.8 min / 148.0 µg · 74 segments",
     "mock": true
    },
    {
@@ -215,7 +215,7 @@
    "mode": "jog"
   },
   "trip_minutes": 18.7,
-  "dose_fastest_ug": 154.8,
-  "dose_breathe_safe_ug": 143.3
+  "dose_fastest_ug": 162.2,
+  "dose_breathe_safe_ug": 148.0
  }
 }

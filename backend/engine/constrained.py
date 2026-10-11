@@ -12,8 +12,13 @@ import sys
 DEBUG = False                    # engine test hook: pop diagnostics when True
 
 
-def search_with_cap(g, start, goal, scale, cap_min, health_w, pm_ref, max_labels=18):
-    """Best-dose path whose total minutes ≤ cap_min; None when unreachable in cap."""
+def search_with_cap(g, start, goal, scale, cap_min, health_w, pm_ref, max_labels=36, ir=3.0):
+    """Best-dose path whose total minutes ≤ cap_min; None when unreachable in cap.
+
+    The label cost is the REAL inhaled dose (pm × IR × minutes/60), not the
+    weighting proxy, so "cleanest within the budget" reads exactly like the
+    number the panel prints.
+    """
     adj = g["adj"]
     labels = {}                     # node -> [(minutes, dose)] kept non-dominated
     parents = {}                    # label key -> parent label key (for the walk-back)
@@ -36,7 +41,7 @@ def search_with_cap(g, start, goal, scale, cap_min, health_w, pm_ref, max_labels
             print(f"pop dose={dose:.2f} m={minutes:.1f} node={node} labels={len(labels)}",
                   file=sys.stderr)
         labels.setdefault(node, []).append((round(minutes, 1), round(dose, 4)))
-        labels[node] = sorted(labels[node])[:max_labels]
+        labels[node] = sorted(labels[node], key=lambda p: (p[1], p[0]))[:max_labels]
         parents[k] = pk
 
         if node == goal:
@@ -47,8 +52,7 @@ def search_with_cap(g, start, goal, scale, cap_min, health_w, pm_ref, max_labels
             m = minutes + edge["minutes"]          # raw minutes = the display unit
             if m > cap_min + 1e-9:
                 continue                           # the HARD cap, enforced per hop
-            d = round(dose + edge["minutes"] * scale
-                      * (1.0 + health_w * (edge["pm25_ug_m3"] / pm_ref)), 4)
+            d = round(dose + edge["pm25_ug_m3"] * ir * (edge["minutes"] / 60.0), 4)
             if _dominated(labels.get(nxt), m, d):
                 continue
             heapq.heappush(heap, (d, m, nxt, k))

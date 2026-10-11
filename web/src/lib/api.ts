@@ -4,14 +4,15 @@ import type { AwsPanelPayload, RoutesPayload } from '../types'
 const FIXTURE = import.meta.env.VITE_FIXTURE !== 'false'
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
 
-export async function fetchPanel(trip: string, mode: string, budget: string): Promise<RoutesPayload> {
+export async function fetchPanel(city: string, trip: string, mode: string, budget: string): Promise<RoutesPayload> {
+  const prefix = city === 'blr' ? 'blr-' : ''
   const suffix = budget === 'any' ? '' : `-b${budget}`
   if (FIXTURE || !BASE) {
-    const r = await fetch(new URL(`fixture-${trip}-${mode}${suffix}.json`, window.location.href))
-    if (!r.ok) throw new Error(`fixture-${trip}-${mode}${suffix} unavailable (${r.status})`)
+    const r = await fetch(new URL(`fixture-${prefix}${trip}-${mode}${suffix}.json`, window.location.href))
+    if (!r.ok) throw new Error(`fixture-${prefix}${trip}-${mode}${suffix} unavailable (${r.status})`)
     return (await r.json()) as RoutesPayload
   }
-  const url = `${BASE}/routes?trip=${encodeURIComponent(trip)}&mode=${mode}&budget=${encodeURIComponent(budget)}`
+  const url = `${BASE}/routes?trip=${encodeURIComponent(trip)}&mode=${mode}&budget=${encodeURIComponent(budget)}&city=${city}`
   const r = await fetch(url)
   if (!r.ok) throw new Error(`api ${r.status}`)
   return (await r.json()) as RoutesPayload

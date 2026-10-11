@@ -24,10 +24,50 @@ def OVERLOOK_GET(n):
     return (n["lat"], n["lon"])
 
 HERE = Path(__file__).resolve().parent
-RAW = HERE / "osm_raw.json"
-OUT = HERE / "delhi_graph.json"
 
-BBOX = (28.695, 77.0955, 28.725, 77.1465)          # south, west, north, east
+CITIES = {
+    "delhi": {
+        "raw": "osm_raw.json", "out": "delhi_graph.json",
+        "bbox": (28.695, 77.0955, 28.725, 77.1465),
+        "anchors": {
+            "rohini": (28.7035, 77.1020),
+            "ashok_vihar": (28.7055, 77.1130),
+            "pitampura": (28.6975, 77.1400),
+            "model_town": (28.7050, 77.1330),
+        },
+        "sources": [
+            {"label": "Rani Bagh market",      "lat": 28.7005, "lon": 77.1215, "peak": 880, "sigma_m": 620},
+            {"label": "Rohini grain market",   "lat": 28.7190, "lon": 77.1060, "peak": 300, "sigma_m": 650},
+            {"label": "Pitampura expressway",  "lat": 28.6948, "lon": 77.1285, "peak": 330, "sigma_m": 540},
+            {"label": "Shalimar yard",         "lat": 28.7085, "lon": 77.1045, "peak": 260, "sigma_m": 600},
+            {"label": "Sector 8 park",         "lat": 28.7125, "lon": 77.1230, "peak": -180, "sigma_m": 1300},
+            {"label": "Corporation park",      "lat": 28.6960, "lon": 77.1235, "peak": -140, "sigma_m": 700},
+        ],
+    },
+    "blr": {
+        "raw": "osm_raw_blr.json", "out": "blr_graph.json",
+        "bbox": (12.920, 77.5745, 12.981, 77.653),
+        "anchors": {
+            "koramangala": (12.9349, 77.6226),
+            "indiranagar": (12.9719, 77.6412),
+            "mg_road": (12.9757, 77.6068),
+            "jayanagar": (12.9305, 77.5837),
+        },
+        "sources": [
+            {"label": "Silk Board junction",  "lat": 12.9339, "lon": 77.6143, "peak": 700, "sigma_m": 480},
+            {"label": "Corporation circle",   "lat": 12.9680, "lon": 77.6060, "peak": 340, "sigma_m": 560},
+            {"label": "Cubbon park",          "lat": 12.9770, "lon": 77.5920, "peak": -130, "sigma_m": 950},
+            {"label": "Lalbagh park",         "lat": 12.9500, "lon": 77.5850, "peak": -140, "sigma_m": 750},
+        ],
+    },
+}
+
+CITY = "delhi" if "--city" not in sys.argv else sys.argv[sys.argv.index("--city") + 1]
+_CFG = CITIES[CITY]
+RAW = HERE / _CFG["raw"]
+OUT = HERE / _CFG["out"]
+BBOX = _CFG["bbox"]
+
 OVERPASS_MIRRORS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
@@ -38,9 +78,9 @@ QUERY = ('[out:json][timeout:90];(way[highway~"^(motorway|trunk|primary|secondar
          '(%s,%s,%s,%s););(._;>;);out skel;' % BBOX)
 
 CLASS_PM = {
-    "motorway": 260, "trunk": 260, "primary": 260,
-    "secondary": 150, "tertiary": 150, "residential": 150, "unclassified": 150,
-    "service": 60, "living_street": 60, "pedestrian": 60,
+    "motorway": 300, "trunk": 300, "primary": 300,
+    "secondary": 240, "tertiary": 170, "residential": 150, "unclassified": 150,
+    "service": 110, "living_street": 110, "pedestrian": 110,
 }
 PACE_M_PER_MIN = {
     "motorway": 560, "trunk": 500, "primary": 430,
@@ -48,14 +88,13 @@ PACE_M_PER_MIN = {
     "unclassified": 210, "service": 170, "living_street": 150, "pedestrian": 150,
 }
 
-ANCHORS = {
-    "rohini": (28.7035, 77.1020),
-    "ashok_vihar": (28.7055, 77.1130),
-    "pitampura": (28.6975, 77.1400),
-    "model_town": (28.7050, 77.1330),
-}
-MARKET_ANCHOR = (28.7005, 77.1215)      # mid-corridor market block (Rani Bagh side)
-HOT_COUNT = 3
+ANCHORS = _CFG["anchors"]
+
+# Gaussian exposure sources: every street's AQI = road-class band + Σ peaks.
+# Some hot (markets, traffic depots, expressway), parks clean — the corridor's
+# own "some more, some less" smog map, deterministic and shared with the web
+# field renderer through this same table.
+SOURCES = _CFG["sources"]
 
 OVERLOOK = {}          # node id -> (lat, lon), filled by _fill_overlook
 
@@ -206,20 +245,31 @@ def build(force=False, debug=False):
         nid = _nearest_node(lat, lon)
         s_nodes[nid]["name"] = name
 
-    ranked = _midroute_hot_edges(s_nodes, s_edges, "rohini", "pitampura", HOT_COUNT)
-    for e in ranked:
-        e["pm25_ug_m3"] = 420.0
-        e["hotspot"] = True
+    # snap each gaussian source onto the graph's nearest junction — sources must
+    # read from real roads, not from map intuition
+    for s in SOURCES:
+        nid = _nearest_node(s["lat"], s["lon"])
+        s["lat"], s["lon"] = s_nodes[nid]["lat"], s_nodes[nid]["lon"]
+
+    marked = 0
+    for e in s_edges:
+        pm = _gaussian_pm(e)
+        e["pm25_ug_m3"] = pm
+        if pm >= 400.0:
+            e["hotspot"] = True
+            marked += 1
+    print(f"[gaussian] {marked} hot street segments over 400 µg/m³")
 
     return {
         "_meta": {
-            "source": "OpenStreetMap ways via Overpass (bbox %s); PM bands by road class; largest connected component" % (BBOX,),
+            "source": "OpenStreetMap ways via Overpass (bbox %s); PM = road-class band + Gaussian exposure sources; largest connected component" % (BBOX,),
             "generated_utc": "2026-10-11T07:30:00Z",
             "note": "illustrative",
-            "hot_anchor": MARKET_ANCHOR,
+            "exposure_sources": SOURCES,
             "components_dropped": len(comps) - 1,
         },
         "corridor": "Paschim Vihar - Ashok Vihar - Pitampura - Model Town (real OSM cut)",
+        "sources": SOURCES,
         "nodes": s_nodes,
         "edges": s_edges,
     }
@@ -294,6 +344,20 @@ def _meters(la1, lo1, la2, lo2):
     dy = (la2 - la1) * 111000
     dx = (lo2 - lo1) * 111000 * math.cos(math.radians(la1))
     return math.hypot(dx, dy)
+
+
+def _gaussian_pm(e):
+    """A street's AQI: road-class band + every Gaussian source's plume + transport."
+
+    pm = clamp(class_band + Σ peakᵢ · exp(−(dᵢ/σᵢ)²), 40, 900). Deterministic,
+    smooth in space, and the SAME source table drives the web field renderer.
+    """
+    import math
+    total = float(CLASS_PM.get(e.get("cls", e.get("highway", "unclassified")), 150.0))
+    for s in SOURCES:
+        d = _meters(s["lat"], s["lon"], *_mid(e))
+        total += s["peak"] * math.exp(-((d / s["sigma_m"]) ** 2))
+    return round(min(max(total, 40.0), 900.0), 1)
 
 
 if __name__ == "__main__":

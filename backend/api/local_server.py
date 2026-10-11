@@ -29,6 +29,7 @@ class Handler(BaseHTTPRequestHandler):
                 _first(q, "mode", "jog"),
                 trip=_first(q, "trip", None),
                 budget=_first(q, "budget", None),
+                city=_first(q, "city", None),
             )
             return self._json(payload, status=200 if payload.get("ok") else 400)
         if parsed.path == "/aws/status":

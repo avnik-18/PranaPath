@@ -18,6 +18,18 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
     })
     map.current.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
     ;(window as unknown as { __ecorouteMap?: maplibregl.Map }).__ecorouteMap = map.current
+
+    map.current.on('click', (e) => {
+      const hit = map.current!.queryRenderedFeatures(e.point, { layers: ['pufffill', 'smogfill'] })[0]
+      if (!hit) return
+      const pm = hit.properties?.pm25
+      const level = hit.properties?.level
+      const says = { high: 'hot zone — avoid', mid: 'smoggy', low: 'cleaner pocket' }[String(level)] ?? ''
+      new maplibregl.Popup({ closeButton: false })
+        .setLngLat(e.lngLat)
+        .setHTML(`<div style="font:12px/1.5 Inter,system-ui"><b style="color:#ff6a3d">PM2.5 ≈ ${pm} µg/m³</b><br>${says} · modelled on this corridor's sources</div>`)
+        .addTo(map.current!)
+    })
   }, [])
 
   useEffect(() => {
@@ -91,8 +103,8 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
           paint: { 'line-color': '#ff6a3d', 'line-width': 3.5, 'line-opacity': 0.98, 'line-dasharray': [1.4, 1.3] } }, 'lineB')
         m.addLayer({ id: 'hotdot', type: 'circle', source: 'hotspots',
           paint: { 'circle-radius': 9, 'circle-color': '#ffdd55', 'circle-stroke-color': '#ff6a3d', 'circle-stroke-width': 2.5 } }, 'lineA')
-        m.fitBounds(bounds(nodePos), { padding: 70, duration: 400 })
       }
+      m.fitBounds(bounds(nodePos), { padding: 70, duration: 400 })
     }
 
     if (m.isStyleLoaded()) paint()
