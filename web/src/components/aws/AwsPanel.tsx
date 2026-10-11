@@ -25,10 +25,8 @@ export function AwsPanel(p: Props) {
 
       {d.switch === 'mock' && (
         <div className="ops-banner">
-          OFFLINE VIEW — every row below is a deterministic replay, traceable to the real trip
-          (<b>{d.trip.origin} → {d.trip.dest} · {d.trip.mode} · fastest {d.trip_minutes} min ·
-          {' '}{d.dose_fastest_ug} µg vs {d.dose_breathe_safe_ug} µg</b>).
-          With the team's keys in <code>.env</code> this stamp flips LIVE — zero code change.
+          OFFLINE VIEW — rows shown are replayed for the demo trip until the team
+          keys in <code>.env</code> flip this console LIVE.
         </div>
       )}
       {d.switch === 'live' && (

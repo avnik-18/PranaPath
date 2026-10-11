@@ -3,7 +3,7 @@ const STEPS = [
     c: '.env' },
   { n: '2', t: 'rehearse, then run the deploy (receipts land in data/receipts)',
     c: 'wsl python3 infra/deploy.py --dry-run' },
-  { n: '3', t: 'reload this console — the stamp flips MOCK → LIVE (probe-backed rows turn green)',
+  { n: '3', t: 'reload this console — the stamp flips to LIVE once the keys arrive (rows turn green)',
     c: 'reload' },
 ]
 
