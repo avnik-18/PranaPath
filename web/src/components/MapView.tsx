@@ -65,16 +65,26 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
           id: 'smogfill', type: 'fill', source: 'smog',
           paint: {
             'fill-color': ['match', ['get', 'level'],
-              'high', '#ff6a3d', 'mid', '#8d5340', '#3d4a54'],
-            'fill-opacity': 0.18,
+              'high', '#ff5a2d', 'mid', '#b06a4a', '#57646f'],
+            'fill-opacity': 0.3,
+          },
+        })
+        m.addLayer({
+          id: 'smogcore', type: 'fill', source: 'smog',
+          paint: {
+            'fill-color': ['match', ['get', 'level'],
+              'high', '#ff7a4d', 'mid', '#c97b52', '#64717c'],
+            'fill-opacity': 0.42,
           },
         })
         m.addLayer({ id: 'lineB', type: 'line', source: 'routes', filter: ['==', ['get', 'route'], 'B'],
-          paint: { 'line-color': '#4fc3ff', 'line-width': 9, 'line-opacity': 0.85 } }, 'smogfill')
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': '#4fc3ff', 'line-width': 6.5, 'line-opacity': 0.92 } }, 'smogcore')
         m.addLayer({ id: 'lineA', type: 'line', source: 'routes', filter: ['==', ['get', 'route'], 'A'],
-          paint: { 'line-color': '#ff6a3d', 'line-width': 5, 'line-opacity': 0.98, 'line-dasharray': [1.6, 1.2] } }, 'lineB')
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': '#ff6a3d', 'line-width': 3.5, 'line-opacity': 0.98, 'line-dasharray': [1.4, 1.3] } }, 'lineB')
         m.addLayer({ id: 'hotdot', type: 'circle', source: 'hotspots',
-          paint: { 'circle-radius': 12, 'circle-color': '#ffdd55', 'circle-stroke-color': '#ff6a3d', 'circle-stroke-width': 2 } }, 'lineA')
+          paint: { 'circle-radius': 9, 'circle-color': '#ffdd55', 'circle-stroke-color': '#ff6a3d', 'circle-stroke-width': 2.5 } }, 'lineA')
         m.fitBounds(bounds(nodePos), { padding: 70, duration: 400 })
       }
     }

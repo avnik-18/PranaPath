@@ -60,16 +60,26 @@ def build_smog(path_nodes, hot_points, baseline_pm):
 
 def _polygon(cell, km_lon):
     plat, plon, pm, row, col = cell
+    return {
+        "polygon": _ring(plat, plon, km_lon, row, col, 1.0),
+        "core": _ring(plat, plon, km_lon, row, col, 0.55),
+        "pm25": round(pm, 1),
+        "level": level_of(pm),
+    }
+
+
+def _ring(plat, plon, km_lon, row, col, scale):
+    """One organic ring (closed) at `scale` of the cell's seeded radius. Never a circle."""
     ring = []
     for k in range(VERTICES):
         theta = 2 * pi * k / VERTICES
-        r = _radius(_seed_int(row, col) + k, theta)
+        r = _radius(_seed_int(row, col) + k, theta) * scale
         ring.append([
             round(plon + deg_km(r * cos(theta), km_lon), 5),
             round(plat + deg_km(r * sin(theta), km_lon, lat=True), 5),
         ])
     ring.append(ring[0])                      # GeoJSON: exterior ring closes explicitly
-    return {"polygon": ring, "pm25": round(pm, 1), "level": level_of(pm)}
+    return ring
 
 
 def deg_km(km, km_lon, lat=False):

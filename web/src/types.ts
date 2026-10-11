@@ -18,6 +18,7 @@ export interface RouteShape {
 
 export interface SmogCell {
   polygon: [number, number][]
+  core: [number, number][]
   pm25: number
   level: 'low' | 'mid' | 'high'
 }

@@ -14,8 +14,9 @@ class TestSmogRules(unittest.TestCase):
         cells = build_smog(BOUNCE, HOTS, 180.0)
         self.assertGreater(len(cells), 0, "corridor must produce haze cells")
         for c in cells:
+            for ring in (c["polygon"], c["core"]):
+                self.assertEqual(ring[0], ring[-1], "polygon must close the ring")
             ring = c["polygon"][:-1]          # drop the closing duplicate
-            self.assertEqual(c["polygon"][0], c["polygon"][-1], "polygon must close the ring")
             cx = sum(p[0] for p in ring) / len(ring)
             cy = sum(p[1] for p in ring) / len(ring)
             radii = [((p[0] - cx) ** 2 + (p[1] - cy) ** 2) ** 0.5 for p in ring]
