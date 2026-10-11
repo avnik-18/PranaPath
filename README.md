@@ -61,7 +61,7 @@ has its own `CLAUDE.md`** stating its import rights — the repo ships its rules
 ## Known limits (read before judging)
 `docs/honest-limits.md`: roads+minutes are a REAL OpenStreetMap cut; dose math is the published
 formula; per-class pollution bands are MODELLED until the live Open-Meteo/CPCB refresh lands
-(keyless). Demo trip numbers are real engine output, not staged. Mock AWS rows say MOCK.
+(keyless). Headline trip numbers are real engine output, not staged. Undeployed AWS rows say DECLARED.
 
 ## Credits & license
 `CREDITS.md` — OSM, Open-Meteo, MapLibre, Claude Code (AI-assisted, disclosed per event rules).

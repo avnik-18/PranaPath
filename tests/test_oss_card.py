@@ -6,10 +6,10 @@ _ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestOssCard(unittest.TestCase):
-    def test_cedar_policy_exists_and_permits_the_demo(self):
+    def test_cedar_policy_exists_and_permits_the_guest(self):
         ce = (_ROOT / "infra" / "policies.cedar").read_text(encoding="utf-8")
         self.assertIn("permit(", ce, "the cedar policy must state its permit rule")
-        self.assertIn('User::"demo"', ce)
+        self.assertIn('User::"guest"', ce)
         self.assertIn('Console::"dashboard"', ce)
 
     def test_powertools_is_imported_in_deploy_zips(self):

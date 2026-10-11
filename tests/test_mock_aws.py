@@ -22,12 +22,12 @@ class MockInventoryRules(unittest.TestCase):
         rows = mock_state.service_inventory()
         self.assertEqual(len(rows), 14)
         self.assertEqual({r["service"] for r in rows}, set(EXPECTED_SERVICES))
-        self.assertTrue(all(r["status"].startswith("GREEN") for r in rows))
+        self.assertTrue(all(r["status"].startswith(("GREEN", "DECLARED")) for r in rows))
 
-    def test_without_probes_everything_stays_mock(self):
+    def test_without_probes_everything_stays_declared(self):
         live = {"mode": "live", "region": "ap-south-1", "probe": {}, "reason": ""}
         rows = mock_state.service_inventory(live)
-        self.assertTrue(all(r["status"] == "GREEN (mock)" for r in rows))
+        self.assertTrue(all(r["status"].startswith("DECLARED") for r in rows))
 
     def test_probe_backed_service_may_claim_live(self):
         live = {"mode": "live", "region": "ap-south-1",

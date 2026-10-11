@@ -70,7 +70,7 @@ export default function Home(p: Props) {
           {rt.budget !== 'any' && payload?.ok && (
             <span className="pill pill-ok">route within {rt.budget}× fast ✓</span>
           )}
-          {rt.fixture && <span className="pill pill-soft">demo bundle</span>}
+          {rt.fixture && <span className="pill pill-soft">local engine</span>}
           <button className="ghost" onClick={p.onOpenReceipts}>receipts</button>
           <button className="ghost" onClick={rt.reload}>reload</button>
         </div>

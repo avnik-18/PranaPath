@@ -12,8 +12,9 @@ sentence; a validator rejects any digit or ID not received from the engine; outa
 
 **AWS:** 14 free-tier services for `ap-south-1` — Amplify, API GW → Lambda dose engine,
 Bedrock Nova Lite (validator-gated), DynamoDB receipts + AQI snapshot, EventBridge 15-min
-refresh + 06:00 Step Functions advisory → SNS, CloudWatch, X-Ray, IAM, Powertools. Every
-action redacted-receipted.
+refresh + 06:00 Step Functions advisory → SNS, CloudWatch, X-Ray, IAM. Built on AWS open
+source — SAM CLI + Powertools + Cedar (`test_oss_card.py` proves it): the eligibility door,
+no keys needed. Every action redacted-receipted.
 
 **Honesty:** real roads, real math; pollution bands modelled until the keyless feed lands.
 AI-assisted (Claude Code).

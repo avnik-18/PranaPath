@@ -8,7 +8,7 @@ entity Console;
 action View applies to {Console};
 
 permit(
-  principal == pranapath::User::"demo",
+  principal == pranapath::User::"guest",
   action == pranapath::Action::"View",
   resource == pranapath::Console::"dashboard"
 );

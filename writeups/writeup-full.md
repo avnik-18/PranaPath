@@ -42,6 +42,13 @@ alarms, **X-Ray** traces, **IAM** scoped roles, **Powertools for AWS**. Zero-RDS
 zero-NAT — a ₹0-conservative design with `infra/deploy.py --dry-run` proving "what changed
 live: NOTHING" before team keys arrive.
 
+**The eligibility door is open-source, and it is code, not a claim:** the repo is built on AWS
+open source — the deploy template is a **SAM** template, every Lambda zip imports
+**Powertools for AWS**, and a real **Cedar** policy (`infra/policies.cedar`) states the demo
+user's permit — all proven by `tests/test_oss_card.py`. That satisfies the contest's
+"≥1 AWS open-source tool OR deployed on AWS" requirement even while the cloud half still
+waits for team keys; the hosting is free and account-capable independently.
+
 **Honest limits:** roads/minutes are real; per-class pollution bands are modelled until the
 keyless refresh lands; demo coverage is one corridor, clearly labelled. **Built in one
 session** — AI-assisted coding disclosed in `CREDITS.md`.

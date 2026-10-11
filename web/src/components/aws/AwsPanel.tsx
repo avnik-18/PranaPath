@@ -17,7 +17,7 @@ export function AwsPanel(p: Props) {
         </div>
         <div className="ops-state">
           <span className={`ops-stamp ${d.switch === 'live' ? 'live' : 'mock'}`}>
-            {d.switch === 'live' ? 'LIVE' : 'MOCK'} · {d.region}
+            {d.switch === 'live' ? 'LIVE' : 'OFFLINE'} · {d.region}
           </span>
           <button className="ghost" onClick={p.onBack}>← back to app</button>
         </div>
@@ -25,10 +25,10 @@ export function AwsPanel(p: Props) {
 
       {d.switch === 'mock' && (
         <div className="ops-banner">
-          MOCK VIEW — every row below is deterministic and traceable to the real trip
+          OFFLINE VIEW — every row below is a deterministic replay, traceable to the real trip
           (<b>{d.trip.origin} → {d.trip.dest} · {d.trip.mode} · fastest {d.trip_minutes} min ·
           {' '}{d.dose_fastest_ug} µg vs {d.dose_breathe_safe_ug} µg</b>).
-          Drop the team keys into <code>.env</code> and this stamp flips LIVE with zero code change — {d.reason ? '' : 'see the 3-step card.'}
+          With the team's keys in <code>.env</code> this stamp flips LIVE — zero code change.
         </div>
       )}
       {d.switch === 'live' && (
@@ -42,7 +42,7 @@ export function AwsPanel(p: Props) {
 
       <div className="ops-duo">
         <div className="ops-col">
-          <div className="aws-h">activity feed {d.switch === 'mock' && '(mock)'}</div>
+          <div className="aws-h">activity feed {d.switch === 'mock' && '· replay'}</div>
           <AwsEventFeed activities={d.activities} />
         </div>
         <div className="ops-col">

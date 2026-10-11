@@ -14,9 +14,10 @@
 12. Architecture is a ring: data → engine → caged guardian → thin API → web; nothing imports "up", and tests are named after the rules they protect.
 13. The cloud half is declared and deploy-ready: 14 AWS services in `infra/template.yaml`, region ap-south-1, free tier only, ₹0 so far.
 14. It includes 3 Lambdas (routing engine, AI explainer, 15-min AQI refresher on Open-Meteo), API Gateway, DynamoDB, Bedrock, two EventBridge schedules, Step Functions, SNS morning advisories, CloudWatch + X-Ray, IAM with Powertools.
+14b. Built on AWS open source — SAM CLI template, Powertools for AWS in every Lambda zip, and a real Cedar policy (`infra/policies.cedar`) — the contest's "≥1 AWS open-source tool" eligibility door, proven by `tests/test_oss_card.py`, no account needed.
 15. Step Functions + EventBridge + SNS turn it proactive: a 06:00 advisory lands before the morning jog.
 16. Every AWS-side action writes one redacted receipt line to a ledger (`data/receipts/*.ndjson`) — ops you can audit.
-17. The web receipts console shows all 14 services and the event feed with an explicit MOCK stamp until real keys flip it to LIVE — zero code change.
+17. The web receipts console shows all 14 services and the event feed with an explicit OFFLINE stamp until real keys flip it to LIVE — zero code change.
 18. `deploy.py --dry-run` prints the plan and writes a deploy receipt while touching AWS zero times; `--apply` is locked until the team account keys exist.
 19. 42/42 offline tests: engine math, validator containment, outage fallback, mock honesty, receipts redaction — the fake-free rules are the test suite.
 20. The site right now: one demo sign-in → map app (both routes + doses + hotspots + AI wording) → receipts console behind the same session.

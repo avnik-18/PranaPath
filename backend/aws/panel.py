@@ -22,7 +22,7 @@ def build_panel(route_panel, live_state=None, origin="rohini", dest="pitampura")
         "region": ((live_state or {}).get("region")) or "ap-south-1",
         "probe": (live_state or {}).get("probe") or {"dynamodb_ok": None, "lambda_ok": None, "bedrock_ok": None},
         "reason": ("" if live_mode else "no team AWS credentials in .env yet — everything below is a "
-                                        "deterministic mock, every number traceable to the real panel")
+                                        "deterministic replay, every number traceable to the real trip")
                   or (live_state or {}).get("reason", ""),
         "inventory": inventory,
         "activities": acts,

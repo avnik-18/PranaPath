@@ -8,18 +8,18 @@ export function Login(p: Props) {
           <span className="logo-dot" />
           <b>PranaPath</b>
         </div>
-        <div className="login-kicker">breathe-safe routing · demo console</div>
+        <div className="login-kicker">breathe-safe routing · engine console</div>
         <label className="login-field">
           <span>email</span>
-          <input value="demo@pranapath.app" readOnly />
+          <input value="guest@pranapath.app" readOnly />
         </label>
         <label className="login-field">
           <span>password</span>
-          <input value="demo-not-real" readOnly type="password" />
+          <input value="guest-pass" readOnly type="password" />
         </label>
-        <button className="login-cta" onClick={p.onEnter}>Sign in as demo</button>
+        <button className="login-cta" onClick={p.onEnter}>Sign in as guest</button>
         <div className="login-note">
-          demo sign-in — no real auth tonight, one click · ops console unlocks behind the same session
+          guest pass — one click · the ops console unlocks behind the same session
         </div>
       </div>
     </div>

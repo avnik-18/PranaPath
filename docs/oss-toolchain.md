@@ -11,7 +11,7 @@ open-source tool***. PranaPath carries **three**, all exercised without a card:
 
 The site itself is a static React build (`web/dist/`) and hosts free on any provider
 (Vercel / Netlify / GitHub Pages — no card) while the Lambda+SAM half stays deploy-ready on
-first key: the receipts console labels every row MOCK until then, so no claim is overstated.
+first key: the receipts console labels every row OFFLINE/DECLARED until keys land, so no claim is overstated.
 
 Rule source: the event's eligibility table (Agents & AI / Serverless: SAM CLI, LocalStack /
 Auth & policy: Cedar / Powertools, etc.). `tests/test_oss_card.py` keeps the card honest —

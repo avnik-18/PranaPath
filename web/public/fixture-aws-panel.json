@@ -16,85 +16,85 @@
     "service": "Amplify",
     "role": "hosts the web island (static)",
     "group": "front",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "API Gateway",
     "role": "HTTPS door: /routes · /aws/*",
     "group": "edge",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "Lambda[engine]",
     "role": "routes + dose computation",
     "group": "edge",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "Lambda[explainer]",
     "role": "caged-AI glue, read-only",
     "group": "edge",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "Bedrock Nova Lite",
     "role": "one sentence, validator-gated",
     "group": "edge",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "DynamoDB",
     "role": "trip receipts + AQI snapshot",
     "group": "data",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "EventBridge 15-min",
     "role": "AQI refresh cadence",
     "group": "health",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "Lambda[aqi-refresh]",
     "role": "snapshot extender",
     "group": "health",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "EventBridge 06:00",
     "role": "daily advisory trigger",
     "group": "advisory",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "Step Functions",
     "role": "AdvisoryOrchestrator state machine",
     "group": "advisory",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "SNS",
     "role": "best jog window email",
     "group": "advisory",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "CloudWatch",
     "role": "structured logs + alarms",
     "group": "ops",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "X-Ray",
     "role": "trace on every route decision",
     "group": "ops",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    },
    {
     "service": "Powertools",
     "role": "Lambda observability middleware",
     "group": "ops",
-    "status": "GREEN (mock)"
+    "status": "DECLARED · keys deploy it"
    }
   ],
   "activities": [
@@ -189,7 +189,7 @@
     "kind": "probe.snapshot",
     "payload": {
      "services": 14,
-     "note": "mock mode"
+     "note": "offline mode"
     },
     "mock": true
    },

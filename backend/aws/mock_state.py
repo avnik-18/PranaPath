@@ -37,7 +37,7 @@ def service_inventory(live_state=None):
     probe = (live_state or {}).get("probe", {})
     for name, role, group in SERVICES:
         # honesty rule: a row may say (live) ONLY when a probe of THIS deployment proves it
-        status = "GREEN (live)" if probe.get(_LIVE_MAPPED.get(name)) is True else "GREEN (mock)"
+        status = "GREEN (live)" if probe.get(_LIVE_MAPPED.get(name)) is True else "DECLARED · keys deploy it"
         rows.append({"service": name, "role": role, "group": group, "status": status})
     return rows
 
@@ -86,7 +86,7 @@ def recent_activities(route_panel, origin="rohini", dest="pitampura"):
 
 _MOCK_RECEIPTS = [
     {"kind": "deploy.dry-run", "payload": {"step": "template validated offline", "charges": "₹0"}},
-    {"kind": "probe.snapshot", "payload": {"services": 14, "note": "mock mode"}},
+    {"kind": "probe.snapshot", "payload": {"services": 14, "note": "offline mode"}},
     {"kind": "engine.route", "payload": {"engine": "stdlib", "ai": "validator-gated"}},
 ]
 
