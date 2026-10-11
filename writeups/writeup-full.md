@@ -1,9 +1,9 @@
-# EcoRoute AI — full writeup (≤500 words)
+# PranaPath — full writeup (≤500 words)
 
 **One line:** navigation ranked by what you breathe, not just how fast you arrive.
 
 On a bad-air Delhi day, the "fastest" route a jogger gets grazes a dense market corridor —
-the cheapest-in-time path maximizes lungs. EcoRoute AI adds the missing cost: **inhaled
+the cheapest-in-time path maximizes lungs. PranaPath adds the missing cost: **inhaled
 pollution dose per street segment**, computed with the published formula
 `dose(µg) = C(µg/m³) × IR(m³/h) × minutes/60` (breathing rates: walk 1.4, cycle 2.3, jog 3.0
 m³/h). The engine runs **two simultaneous Dijkstras** on a real OpenStreetMap cut of the

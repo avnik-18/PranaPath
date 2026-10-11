@@ -1,6 +1,6 @@
-# EcoRoute AI — short writeup (≤120 words)
+# PranaPath — short writeup (≤120 words)
 
-Navigation ranked by what you breathe, not how fast you arrive. EcoRoute computes inhaled
+Navigation ranked by what you breathe, not how fast you arrive. PranaPath computes inhaled
 dose per street segment (`C × IR × minutes`, published formula, deterministic engine) on a real
 OpenStreetMap cuts of Delhi + Bengaluru, returning fastest vs breath-safe routes under a time
 cap you choose — demo trip: **+3.1 min → −10.6% dose**. A caged AI explains the route in one

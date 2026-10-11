@@ -1,6 +1,6 @@
 # CREDITS — libraries, data, and AI tools (event-required disclosure)
 
-Dated: 2026-10-11 · repo: EcoRoute AI (first.commit Environmental Hacks, Track: Air)
+Dated: 2026-10-11 · repo: PranaPath (first.commit Environmental Hacks, Track: Air)
 
 ## Open-source / data sources
 - `data/delhi_graph.json` — road network extracted from **OpenStreetMap** (© OpenStreetMap contributors, ODbL) via Overpass API (keyless); generator: `data/build_delhi_graph.py`.

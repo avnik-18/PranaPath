@@ -9,6 +9,15 @@ if _HERE not in sys.path:
 
 from backend.guardian.explain import explain_route  # noqa: E402
 
+try:                                    # AWS OSS card: Powertools for AWS (Lambda)
+    from aws_lambda_powertools import Logger
+    _log = Logger(service="ecoroute-explainer")
+except ImportError:                     # offline builds — the deploy layer provides it
+    class _FallbackLog:
+        def info(self, msg, **kw):
+            print("[ecoroute-explainer] " + msg)
+    _log = _FallbackLog()
+
 _CORS = {"Access-Control-Allow-Origin": "*"}
 
 
@@ -18,6 +27,7 @@ def handler(event, context):
     except ValueError:
         body = {}
     out = explain_route(body.get("panel", body), use_ai=True)
+    _log.info("explained", extra={"source": out.get("source"), "validated": out.get("validated")})
     return {
         "statusCode": 200,
         "headers": _CORS,

@@ -1,8 +1,8 @@
-# EcoRoute AI
+# PranaPath
 
 **Navigation ranked by what you breathe, not just how fast you arrive.**
 
-A Delhi jogger's fastest route grazes a market corridor every time. EcoRoute computes the
+A Delhi jogger's fastest route grazes a market corridor every time. PranaPath computes the
 **inhaled dose of every street segment** (`dose(µg) = C(µg/m³) × IR(m³/h) × minutes/60`) on a
 real OpenStreetMap graph and returns TWO routes: regular fastest, and breath-safe. A recent
 demo trip: **+3.1 min → −10.6% inhaled dose** (17.9 vs 14.8 minutes; 119.2 vs 133.4 µg).
@@ -18,10 +18,10 @@ real 4,939-junction OSM cut. A caged AI then explains the choice in ONE sentence
 validator rejects any digit it did not receive from the engine. Where AWS belongs, AWS is
 declared: 14 services, free tier, no RDS/EC2/NAT, region ap-south-1.
 
-## Screens
-The ask | Measured trade-off | The product
---- | --- | ---
-![the ask](web/public/shot-ask.png) | ![measured](web/public/shot-trade.png) | ![live map](web/public/shot-map.png)
+**No AWS account needed to demo:** the repo runs the contest's open-source door — SAM CLI +
+Powertools for AWS + Cedar (`docs/oss-toolchain.md`) — and the site is a static build that hosts
+free on Vercel/Netlify when the team drops a link in the writeup. The film (`film/final_cut.mp4`,
+2:21) IS the screens.
 
 ## Quick start (offline, no AWS account, no keys)
 ```bash

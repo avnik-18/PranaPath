@@ -1,6 +1,6 @@
-# EcoRoute AI — project description (30 lines)
+# PranaPath — project description (30 lines)
 
-1. EcoRoute AI is a navigation app for the bad-air season: it ranks routes by what your lungs inhale, not just by minutes.
+1. PranaPath is a navigation app for the bad-air season: it ranks routes by what your lungs inhale, not just by minutes.
 2. The question it answers: two streets can both say "14 minutes" — but one walks you past a market corridor and one detours two blocks; which one do you breathe?
 3. Every dose number comes from one published formula: dose (µg) = Σ pollution (µg/m³) × breathing-rate (m³/h) × minutes (per street segment).
 4. The engine is deterministic — pure Python, no AI, no network; it sums segment by segment and shows its work.

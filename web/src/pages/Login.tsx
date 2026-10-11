@@ -6,12 +6,12 @@ export function Login(p: Props) {
       <div className="login-card">
         <div className="brand">
           <span className="logo-dot" />
-          <b>EcoRoute AI</b>
+          <b>PranaPath</b>
         </div>
         <div className="login-kicker">breathe-safe routing · demo console</div>
         <label className="login-field">
           <span>email</span>
-          <input value="demo@ecoroute.ai" readOnly />
+          <input value="demo@pranapath.app" readOnly />
         </label>
         <label className="login-field">
           <span>password</span>

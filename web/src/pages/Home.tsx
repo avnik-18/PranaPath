@@ -45,7 +45,7 @@ export default function Home(p: Props) {
       <header className="topbar">
         <div className="brand">
           <span className="logo-dot" />
-          <b>EcoRoute AI</b>
+          <b>PranaPath</b>
           <span className="tag">breathe-safe routing · India</span>
         </div>
         <div className="tools">

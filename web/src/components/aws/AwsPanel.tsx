@@ -12,7 +12,7 @@ export function AwsPanel(p: Props) {
       <header className="ops-head">
         <div className="brand">
           <span className="logo-dot" />
-          <b>EcoRoute AI</b>
+          <b>PranaPath</b>
           <span className="tag">ops console</span>
         </div>
         <div className="ops-state">

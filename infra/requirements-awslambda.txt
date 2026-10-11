@@ -1,0 +1,4 @@
+# Lambda runtime deps for the deploy zips (SAM build installs these).
+# Powertools for AWS is ALSO available as the public Lambda layer — see
+# template.yaml's Layers note — keeping the zip small either way.
+aws-lambda-powertools>=3.2,<4

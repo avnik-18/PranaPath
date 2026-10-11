@@ -1,9 +1,9 @@
-# EcoRoute AI — form-field writeup (≤150 words)
+# PranaPath — form-field writeup (≤150 words)
 
 **The problem:** a jogger's fastest route grazes a market corridor even on Delhi's worst-air
 days — maps optimize minutes, never lungs.
 
-**Built:** EcoRoute AI ranks routes by **inhaled dose** — `dose(µg)=Σ C×IR×minutes`
+**Built:** PranaPath ranks routes by **inhaled dose** — `dose(µg)=Σ C×IR×minutes`
 computed deterministically per segment over a real OpenStreetMap cut (4,939 junctions).
 Demo trip **+3.1 min → −10.6% dose** (two cities: Delhi + Bengaluru real OSM cuts), priced by a
 cap you choose. A caged AI explains the choice in one
