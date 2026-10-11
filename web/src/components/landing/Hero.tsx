@@ -18,6 +18,11 @@ export function Hero(p: Props) {
         <button className="l-open big" onClick={p.onOpenApp}>Open the app →</button>
         <a className="hero-ghost" href="#system">See the system ↓</a>
       </div>
+      <div className="hero-stats">
+        <div className="hero-stat a"><b>14.8 min</b><span>Route A · fastest</span></div>
+        <div className="hero-stat b"><b>14.9 min</b><span>Route B · breathe-safe</span></div>
+        <div className="hero-stat win"><b>+0.1 min → −9.1%</b><span>measured trade · everything else equal</span></div>
+      </div>
     </section>
   )
 }

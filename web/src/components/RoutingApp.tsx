@@ -6,7 +6,7 @@ import { DoseCompare } from './DoseCompare'
 import { HotspotBadges } from './HotspotBadges'
 import { ExplanationCard } from './ExplanationCard'
 
-type Props = { onOpenOps: () => void }
+type Props = { onOpenOps: () => void; onHome?: () => void }
 
 export default function RoutingApp(p: Props) {
   const rt = useRoutesRuntime('ashok_vihar', 'model_town', 'jog')
@@ -31,6 +31,7 @@ export default function RoutingApp(p: Props) {
           </label>
           {rt.fixture && <span className="pill pill-soft">demo bundle</span>}
           <button className="ghost" onClick={p.onOpenOps}>aws receipts</button>
+          {p.onHome && <button className="ghost" onClick={p.onHome}>home</button>}
           <button className="ghost" onClick={rt.reload}>reload</button>
         </div>
       </header>

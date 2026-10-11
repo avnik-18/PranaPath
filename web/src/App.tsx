@@ -14,9 +14,12 @@ import { Footer } from './components/landing/Footer'
 type View = 'landing' | 'app' | 'ops'
 
 export default function App() {
-  const [entered, setEntered] = useState(false)
+  // #app-direct = skip the demo sign-in (film capture / impatient users)
+  const [entered, setEntered] = useState(() =>
+    /#app(|-direct)/.test(window.location.hash))
+  // default face = the PRODUCT (map); landing is the optional story (#home)
   const [view, setView] = useState<View>(() =>
-    window.location.hash === '#app' ? 'app' : 'landing',
+    window.location.hash === '#home' ? 'landing' : 'app',
   )
 
   if (!entered) return <LoginGate onEnter={() => setEntered(true)} />
@@ -46,5 +49,7 @@ export default function App() {
   if (view === 'ops') {
     return <AwsOps onBack={() => setView('app')} />
   }
-  return <RoutingApp onOpenOps={() => setView('ops')} />
+  return <RoutingApp
+    onOpenOps={() => setView('ops')}
+    onHome={() => setView('landing')} />
 }

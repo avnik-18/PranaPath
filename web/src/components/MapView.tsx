@@ -13,6 +13,8 @@ export function MapView({ payload }: { payload: RoutesPayload | null }) {
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       center: [77.12, 28.715],
       zoom: 12.2,
+      preserveDrawingBuffer: true,
+      fadeDuration: 0,
     })
     map.current.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
   }, [])
