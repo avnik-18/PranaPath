@@ -1,0 +1,22 @@
+# SECTION 08 · Film AWS beats + rebuild final ≤3:00 — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. FIRST read root CLAUDE.md + DEMO.md (`web/frames/mk_beats.py`, `web/frames/shot_all.ps1` exist and work). CRITICAL machine rule: Edge headless screenshots MUST run from PowerShell side (`shot_all.ps1`), NOT through wsl — they silently produce nothing otherwise. ffmpeg is at `~/bin` in WSL. Do NOT touch backend/src.
+
+## Goal
+Add the story beats the film is still missing — login gate, the AWS receipts console, the one-click go-live story — then re-shoot and rebuild the final film ≤3:00 where every narration line has matching motion on screen.
+
+## Build list
+- `web/frames/beat7.html` (mk_beats.py adds a `frames["beat7"]` entry): "THE OPS CONSOLE" — headline: "Dropping in team creds flips the stack live." + 3-step GoLive card text + `.env` key chips; kicker "SECURE CONSOLE · ap-south-1".
+- `web/frames/beat8.html`: "DEMO LOGIN" — headline "Judges sign in with one click." + CTA card (demo creds pre-filled, SIGN IN AS DEMO) + note "no real auth tonight — dedicated demo identity".
+- `web/frames/beat9.html`: "RECEIPTS OR IT DIDN'T HAPPEN" — receipts table strip copy + CloudWatch/X-Ray chips + deploy checklist (Go-live orders from beat7).
+- Amend `mk_beats.py` foot: change footer left label to FINAL CUT when you add beats.
+- Shoot: run `web/frames/shot_all.ps1` from PowerShell (loop beats 7 8 9 + keep 1..6 untouched; `Sleep 5` between) — verify all beat N.png sizes > 40KB or mark FAILED and retry on the failed ones only.
+- Assemble with a NEW `C:\Users\chukkalak\AppData\Local\Temp\eco_assemble9.sh` WSL script (copy the working assemble script; extend xfade chain for 9 clips, offsets every 4.66 s ≈ 9 beats × 5.2 s minus 6 (5-stage 0.6 fade-chain total) → target ≤ 190 s = under 3:00). Keep zoompan 0.0007 cadence; yuv420p; faststart; crf 21.
+- Length check with ffprobe: report duration precisely; aim 140–170 s.
+
+## Rules
+Only wipe-edges-safe edits to mk_beats.py (append beats, never rewrite working ones); frames dir must remain in .gitignore product view unchanged; PNG beat5 live-app already crisp — do not re-shoot it unless empty.
+
+## Verify
+ffprobe duration ≤ 170 s and ≥ 140; all 9 PNGs exist > 40KB; final = `film/final_cut.mp4`; report PASS/FAIL + duration line.

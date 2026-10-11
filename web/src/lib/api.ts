@@ -1,0 +1,28 @@
+/* The ONLY bridge to the outside world (fixture bundle or the API). Nothing else fetches. */
+import type { AwsPanelPayload, RoutesPayload } from '../types'
+
+const FIXTURE = import.meta.env.VITE_FIXTURE !== 'false'
+const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
+
+export async function fetchPanel(origin: string, dest: string, mode: string): Promise<RoutesPayload> {
+  if (FIXTURE || !BASE) {
+    const r = await fetch(new URL('fixture-panel.json', window.location.href))
+    if (!r.ok) throw new Error(`fixture unavailable (${r.status})`)
+    return (await r.json()) as RoutesPayload
+  }
+  const url = `${BASE}/routes?origin=${encodeURIComponent(origin)}&dest=${encodeURIComponent(dest)}&mode=${mode}`
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`api ${r.status}`)
+  return (await r.json()) as RoutesPayload
+}
+
+export async function fetchAwsPanel(): Promise<AwsPanelPayload> {
+  if (FIXTURE || !BASE) {
+    const r = await fetch(new URL('fixture-aws-panel.json', window.location.href))
+    if (!r.ok) throw new Error(`aws fixture unavailable (${r.status})`)
+    return (await r.json()) as AwsPanelPayload
+  }
+  const r = await fetch(`${BASE}/aws/panel`)
+  if (!r.ok) throw new Error(`aws api ${r.status}`)
+  return (await r.json()) as AwsPanelPayload
+}

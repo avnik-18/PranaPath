@@ -1,0 +1,23 @@
+# SECTION 09 · Submission pack finals — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. ALL sections 1–8 done. FIRST read root CLAUDE.md, README.md, CREDITS.md, DEMO.md, IDEA_SCOPE.md, docs/*. Machine: WSL only for python; no new installs; repo must remain main-only, no accidental git init twice (git runs via `wsl git` only when asked).
+
+## Goal
+Freeze the story: README (the door), DEMO.md (video script beat map), CREDITS (the disclosure), writeup copy (paste-ready into the form), docs sync + dated decisions log entries, and a submission zip check that PROVES what ships.
+
+## Build list
+- `README.md` final: one-line pitch; 30-second hero paragraph; Architecture ring mini-diagram + 14-AWS strip table; Quickstart block (3 commands max, `wsl python3`, fixture demo default, live-engine optional flag); screenshots embedded from `web/frames/beat{1,3,5}.png`; Testimonials-style "why judges can trust it" 4-bullet trust block; Known limits link to docs/honest-limits.md; License + credits line. ≤ 150 lines.
+- `DEMO.md` final screenplay: updated 9 beats incl. beats 7 8 9 from film order; each beat = narration line + on-screen anchor + duration; total runtime target 2:30–2:55.
+- `CREDITS.md` — add Claude Code (code + film pipeline), EventBridge/CFN pattern-sources, OSM data attribution, and the event-required AI-tools sentence, dated.
+- `writeups/` NEW folder: `writeup-full.md` ≤ 500 words; `writeup-short.md` ≤ 120 words; `writeup-150.md` ≤ 150 words (form-field variants); all pitch EcoRoute: air-plan-compatible routing + validator AI; zero fabricated claims, every number engine-derived, cite honest-limits.
+- `docs/decisions-log.md` — append dated entries 14–16 (login theater choice; mock-view labeled honesty; deploy kit deliverable).
+- `docs/WRUN.md` — refresh a copy of finalize (Section 07 stub now real). RUN tasks 03/05/07 outputs cross-check line-by-line.
+- Gitignore sweep: `.env*` (but NOT .env.example), node_modules, dist, mp4, `.claude/settings.local.json`.
+- `infra/build_manifest.md` — what a judge sees in 2 min: file map + 5 commands.
+
+## Rules
+No code files opened besides structure peek (READMEs describe; don't paste source). No invented feature claims. All numbers cross-checked to fixture-panel.json exact values.
+
+## Verify
+word counts for 3 writeups (print); README line-count; grep the repo for TODO/FIXME or REF references and report; report PASS/FAIL.

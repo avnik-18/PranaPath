@@ -1,0 +1,19 @@
+# SECTION 07 · Deploy kit — CloudFormation + one-command deploy via env creds — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. FIRST read root `CLAUDE.md`, `backend/aws/CLAUDE.md`, `infra/CLAUDE.md`, docs/ARCHITECTURE.md (the 14-service map is the contract). Machine: WSL python3 only; no aws-cli install; boto3 arrives with env creds (Section 03 client). Tests must stay green. Do NOT touch web/src, film, prompts.
+
+## Goal
+Landing-ready one-command deploy: `wsl python3 infra/deploy.py` builds engine+explainer+aqi Lambda zips, uploads via boto3 using `.env` creds, and drives a CloudFormation/ChangeSet flow — free tier only, ap-south-1, no EC2/RDS/NAT. `--dry-run` prints the plan and touches nothing. NEVER print credentials; mask key ids to last 4 chars.
+
+## Build list
+- `infra/template.yaml` — YAML CloudFormation: Outputs (RestApi url, table names): RouteTable DynamoDB 5 GSI-free; ApiGatewayMethod + Resource /routes, /aws/status, /aws/panel; LambdaEngine + LambdaExplainer + LambdaAqi (runtime python3.11, code from zips, env vars region; Powertools layer note comment); BedrockInvoke IAM role statements (bedrock:InvokeModel, dynamodb scoped PutItem/GetItem, logs, sns:Publish); EventbridgeRule 15-min + fallback SQS DLQ comment; SFN state machine JSON inline (AdvisoryOrchestrator → best-window calc → SNS publish email); XRay tracing enable; Powertools lambda layer arn link comment.
+- `infra/deploy.py` (stdlib + boto3 lazy) — argparse {--dry-run/--template-vector-none}: (1) zip engine lambda: shim handler `infra/lambda_shim/engine_handler.py` -> set backend/engine sys.path hop; (2) boto3: s3 putObject + cloudformation create_change_set + execute; (3) wait_state; print Outputs JSON. Blocked when no creds with clear "add role-account creds to .env" line. All steps logging to `data/receipts/deploy.ndjson` via receipts.record (03).
+- `infra/WRUN.md`? NO — runbook text goes to `docs/WRUN.md` (create): 6 ordered commands from 0 to deployed, with `wsl` prefix and expected receipt lines after each.
+- `.env.example` — append `AWS_LAMBDA_ROLE_ARN` placeholder + deploy hint comments.
+- `infra/CLAUDE.md` — folder rulebook (append): cost table (8 monthly $0 items — lambda 1M req free, ddb 25GB free, etc.) printed above rule list.
+
+## Rules
+No AWS service outside the 14; no region other than ap-south-1; deploy.py ≤250 lines total but never prints AKIA…; template compiles via `cloudformation validate` (cfn-only, no CLI install — validate via python yaml.safe_load + expected keys cloud-check OR `cfn-lint` skip if uninstalled, note it).
+## Verify
+unittest all; `wsl python3 infra/deploy.py --dry-run` exits 0 printing plan (no creds needed); zips exist under infra/build/; report PASS/FAIL lines.

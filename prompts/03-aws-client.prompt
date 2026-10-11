@@ -1,0 +1,21 @@
+# SECTION 03 · backend/aws ring — env-cred client + receipts ledger — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. FIRST read root `CLAUDE.md` (ring matrix!), `backend/CLAUDE.md`. Machine: company laptop — python only via `wsl python3`, stdlib first, `wsl python3 -m unittest discover -s tests` must go green. Do NOT touch web/, infra/, data/, prompts/.
+
+## Goal
+Open Ring 3.5: a small `backend/aws/` package that talks to AWS ONLY through credentials arriving via environment/.env (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` default `ap-south-1`, optional `AWS_PROFILE`, `ECOROUTE_AWS_MODE=live|mock|auto`). Hard rule: never hardcoded creds, never logged secrets, never hard-fail without AWS (offline demo stays perfect).
+
+## Build list
+- `backend/aws/CLAUDE.md` — folder rulebook: imports lifecycle (called by api handler only), env table, mock/live discipline.
+- `backend/aws/client.py` — lazy boto3 import (same pattern as `backend/guardian/bedrock.py`); `aws_state()` returns dict {mode, region, probe: {dynamodb_ok, lambda_ok, bedrock_ok: bool|None}, reason}; each probe wrapped try/except; returns None-based probes (not crash) when boto3 or creds missing.
+- `backend/aws/receipts.py` — `record(kind: str, payload: dict)`: appends a JSON line to `data/receipts/<yyyymmdd>.ndjson` with iso timestamp + redacted payload (stray keys ending `_key`/`token`/`secret` dropped); when file unwritable, skip silently but return False.
+- `backend/errors.py`? NO — reuse existing error shapes from `backend/api/schemas.py`; do not create new error modules.
+- `tests/test_aws_client.py` — rules-as-tests: (1) no creds → probes are None and mode='mock'; (2) env creds set to a fake client stub via monkeypatch of a module-level factory → ddb probe True; (3) receipts redaction: feed payload with `aws_secret` key → line stored without it; (4) receipts survives missing dir (creates it).
+- Update `.env.example` (append the AWS block above with empty values + comments) and `.gitignore` already covers .env — do not add receipts dir (data/receipts/ is runtime; add a `.gitignore` inside data/receipts/ itself: `*.ndjson`).
+
+## Rules
+No moto dependency (keep install surface zero): tests use a tiny FakeClient class injected through a module-level `_factory` hook (mirrors bedrock.py testability). ≤150 lines/file.
+
+## Verify
+`wsl python3 -m unittest discover -s tests -v` exit 0 (ALL tests, old 20 + new). Print the counts line only.

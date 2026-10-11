@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "source": "bundled file for offline/fixture mode; live mode uses Open-Meteo (keyless)",
+    "generated_utc": "2026-10-11T04:00:00Z",
+    "note": "illustrative"
+  },
+  "city": "Delhi",
+  "stations": [
+    {"id": "S1", "name": "DTU", "lat": 28.75, "lon": 77.11, "pm25": 168.0},
+    {"id": "S2", "name": "Civil Lines", "lat": 28.67, "lon": 77.23, "pm25": 150.0},
+    {"id": "S3", "name": "Rohini West", "lat": 27.86, "lon": 77.06, "pm25": 172.0}
+  ]
+}

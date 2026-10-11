@@ -1,0 +1,199 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: EcoRoute AI deployed ring — 14 services, free tier, ap-south-1, no RDS/EC2/NAT.
+
+Parameters:
+  AlertEmail:
+    Type: String
+    Default: nobody@example.com
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 12
+    Tracing: Active            # X-Ray on every route decision
+    # Powertools for AWS (OSS card): pin the public layer ARN at deploy time, e.g.
+    # Layers: ["arn:aws:lambda:<region>:017000801446:layer:AWSLambdaPowertoolsPythonV3-python311-x86_64:<ver>"]
+    Environment:
+      Variables:
+        AWS_REGION: !Ref AWS::Region
+
+Resources:
+  EcoRouteTrips:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EcoRouteTrips
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+
+  EngineFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ecoroute-engine
+      Handler: awslambda_engine.handler
+      CodeUri: build/awslambda_engine.zip
+      MemorySize: 512
+      Environment:
+        Variables:
+          TRIPS_TABLE: !Ref EcoRouteTrips
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: [dynamodb:PutItem, dynamodb:GetItem]
+              Resource: !GetAtt EcoRouteTrips.Arn
+            - Effect: Allow
+              Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+              Resource: '*'
+            - Effect: Allow
+              Action: [lambda:InvokeFunction]
+              Resource: '*'
+      Events:
+        RoutesApi:
+          Type: HttpApi
+          Properties:
+            Path: /routes
+            Method: GET
+            ApiId: !Ref HttpApi
+            Auth: { Authorizer: NONE }
+        AwsStatusApi:
+          Type: HttpApi
+          Properties:
+            Path: /aws/status
+            Method: GET
+            ApiId: !Ref HttpApi
+            Auth: { Authorizer: NONE }
+        AwsPanelApi:
+          Type: HttpApi
+          Properties:
+            Path: /aws/panel
+            Method: GET
+            ApiId: !Ref HttpApi
+            Auth: { Authorizer: NONE }
+
+  ExplainerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ecoroute-explainer
+      Handler: awslambda_explainer.handler
+      CodeUri: build/awslambda_explainer.zip
+      MemorySize: 256
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: [bedrock:InvokeModel, bedrock:InvokeModelWithResponseStream]
+              Resource: '*'
+            - Effect: Allow
+              Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+              Resource: '*'
+
+  AqiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ecoroute-aqi-refresh
+      Handler: refresh_aqi.handler
+      CodeUri: build/refresh_aqi.zip
+      MemorySize: 256
+      Timeout: 30
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: [dynamodb:PutItem]
+              Resource: !GetAtt EcoRouteTrips.Arn
+            - Effect: Allow
+              Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+              Resource: '*'
+      Events:
+        AqiTick15min:
+          Type: Schedule
+          Properties: { Schedule: rate(15 minutes) }
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods: [GET]
+        AllowOrigins: ['*']
+        AllowHeaders: [content-type]
+
+  AdvisoryTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: AdvisoryOrchestrator.out
+
+  AdvisorySubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+      TopicArn: !Ref AdvisoryTopic
+
+  AdvisoryStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: AdvisoryOrchestrator
+      DefinitionUri: {}
+      Definition:
+        Comment: 06:00 IST — pick best jog window from last-night AQI, email it. Kill switch APPLY_ENABLED=false.
+        StartAt: BestWindow
+        States:
+          BestWindow:
+            Type: Task
+            Resource: arn:aws:states:::sns:publish
+            Parameters:
+              TopicArn: !Ref AdvisoryTopic
+              Message.$: "$.best_window"
+            End: true
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: [sns:Publish]
+              Resource: !Ref AdvisoryTopic
+            - Effect: Allow
+              Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+              Resource: '*'
+
+  Rule0600Start:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: ecoroute-advisory-0600
+      ScheduleExpression: cron(30 0 * * ? *)   # 06:00 IST = 00:30 UTC
+      State: ENABLED
+      Targets:
+        - Id: AdvisoryOrchestrator
+          Arn: !Ref AdvisoryStateMachine
+          RoleArn: !GetAtt Rule0600Role.Arn
+
+  Rule0600Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: events.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: start-execution-only
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource: !Ref AdvisoryStateMachine
+
+Outputs:
+  ApiBaseUrl:
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/routes'
+  TableName:
+    Value: !Ref EcoRouteTrips
+  AmplifyNote:
+    Value: "web/ ships as a separate Amplify ZIP upload (Factcade trick) + this API base in VITE_API_BASE"
+  AdvisoryOut:
+    Value: !Ref AdvisoryTopic

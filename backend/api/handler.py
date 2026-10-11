@@ -1,0 +1,66 @@
+"""Pure handlers: params -> dict payload. Adapters (local_server.py, Lambda) wrap these.
+
+Glue only — no engine math, no AI calls beyond delegating to guardian.
+"""
+
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[2]
+_GRAPH = None
+
+
+def _graph():
+    global _GRAPH
+    if _GRAPH is None:
+        from ..engine import graph as gy
+        _GRAPH = gy.load_graph(str(_ROOT / "data" / "delhi_graph.json"))
+    return _GRAPH
+
+
+def handle_routes(origin, dest, mode):
+    from .schemas import routes_response, error_response
+
+    try:
+        panel = _routes().compare_routes(_graph(), origin, dest, mode)
+    except KeyError as exc:                      # unknown node/landmark -> clean 400, not 500
+        return error_response("unknown_node", str(exc))
+    if not panel.get("ok"):
+        return error_response("unreachable", panel.get("error", ""))
+
+    panel["path_nodes"] = shaped_nodes(panel)
+    explanation = _explain().explain_route(panel)
+    return routes_response(panel, explanation)
+
+
+def handle_state():
+    return {
+        "ok": True,
+        "api_version": "v1",
+        "service": "ecoroute-engine",
+        "fixtures_present": {
+            "delhi_graph": (_ROOT / "data" / "delhi_graph.json").exists(),
+            "aqi_snapshot": (_ROOT / "data" / "aqi_snapshot.json").exists(),
+        },
+    }
+
+
+def shaped_nodes(panel):
+    """Deduped route corridors (A ∪ B) for the map, lat/lon + names from the graph."""
+    g = _graph()
+    seen, out = set(), []
+    for nid in panel["route_fastest"]["path"] + panel["route_healthy"]["path"]:
+        if nid not in seen:
+            seen.add(nid)
+            n = g["nodes"][nid]
+            out.append({"id": nid, "name": n["name"], "lat": n["lat"], "lon": n["lon"]})
+    return out
+
+
+def _routes():
+    from ..engine import routes as rr
+    return rr
+
+
+def _explain():
+    from ..guardian import explain as ex
+    return ex

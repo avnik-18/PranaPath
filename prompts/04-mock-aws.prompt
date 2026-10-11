@@ -1,0 +1,21 @@
+# SECTION 04 · Deterministic mock-AWS state for all 14 services — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. FIRST read root `CLAUDE.md` + `backend/aws/CLAUDE.md` (Section 03 created it). Runs are WSL python3; unittest must pass all. Do NOT touch web/, infra/, api/ (Section 05 wires it), prompts/.
+
+## Goal
+One truthful mock layer: when AWS creds are absent, the product still SHOWS the deployed architecture honestly, labeled MOCK — deterministic so judges see the same numbers every run (Factcade rule: mocks must be reproducible). Mock covers ALL 14 services from ARCHITECTURE.md: Amplify, API Gateway, Lambda[engine], Lambda[explainer], Lambda[aqi-refresh], DynamoDB, Bedrock Nova Lite, EventBridge Scheduler (15-min), EventBridge 06:00, Step Functions AdvisoryOrchestrator, SNS, CloudWatch logs+alarms, X-Ray, IAM roles, Powertools.
+
+## Build list
+- `backend/aws/mock_state.py` —
+  - `service_inventory()` → list of the 14 entries {service, role, status, note} statuses all "GREEN (mock)" except nothing — honest uniform sim.
+  - `recent_activities(route_panel: dict) -> list[dict]` — DETERMINISTIC events derived from the real route panel payload passed in (trip name, minutes, dose numbers straight from panel): e.g. Lambda[engine] invoked "GET /routes rohini→pitampura jog" with its latency `round(minutes*100/2,1) ms` style derive — every number traceable to the panel (write the derivation in a comment ONCE); DynamoDB PutItem 1 trip; Bedrock evaluated stats; EventBridge next 15-min tick (fixed formula from payload, e.g. minute % 15); SFN 06:00 advisory tomorrow 06:00 IST fixed string; SNS queued 1 (mock).
+  - `sample_receipts() -> list` — last 5 receipts read from data/receipts/*.ndjson if present else generated clearly-mock rows is_mock: True.
+- `backend/aws/panel.py` — `build_panel(route_panel, live_state=None)` merges inventory + activities; each activity gets `mock: true` flag when mode != live; counts dict; SWITCH field for the UI (Section 06). ≤120 lines.
+- `tests/test_mock_aws.py` — (1) inventory length == 14 and every service named; (2) same panel → identical activities list string (determinism, run twice); (3) no fabricated dose numbers: totals in activities exist in the passed panel payload (cross-check string containment of e.g. dose_ug values); (4) flags mock True when live_state None, False when given.
+
+## Rules
+stdlib only; every number in mock output traceable to input panel — grep-able; ≤150 lines/file.
+
+## Verify
+`wsl python3 -m unittest discover -s tests` exit 0; print new test names + total count line.

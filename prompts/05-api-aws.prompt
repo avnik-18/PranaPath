@@ -1,0 +1,23 @@
+# SECTION 05 · API endpoints for the AWS panel — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. FIRST read root `CLAUDE.md`, `backend/api/CLAUDE.md`. Ring 4 is THIN GLUE only. WSL python3; unittest all green. Do NOT touch web (Section 06), infra, mock internals (04 done).
+
+## Goal
+Thin API surface so the web island can render the AWS receipts view: three read-only endpoints, one schema, contract tests, local server wiring (thin Lambda entry points — Suraksha pattern).
+
+## Build list
+- `backend/api/aws_schemas.py` — `AWS_API_VERSION = "v1"`; `aws_panel_response(panel)`, `aws_error(code, message)` matching the style of existing `schemas.py` (same envelope: {ok, api_version, data|error}).
+- `backend/api/aws_handler.py` —
+  - `handle_aws_status()` → aws_state() passthrough wrapped {ok:true, data:{mode, region, probe, reason}}.
+  - `handle_aws_panel(origin="rohini", dest="pitampura", mode="jog")` → first calls `aws_handler.handle_routes`-equivalent `handler.handle_routes(origin,dest,mode)` (import the done handler), then `backend/aws/panel.build_panel(panel, live_state=aws_state())`; on KeyError → aws_error("unknown_node", "landmark not found: X") mirroring existing handler errors. NO logic beyond concat (thin rule).
+- `backend/local_server.py` — add GET `/aws/status` and `/aws/panel?origin&dest&mode` (default origin ashok_vihar destination pitampura mode jog — same defaults as /routes), CORS `*`, same dispatcher style.
+- `tests/test_api_contract_aws.py` — (1) /aws/panel payload keys: ok, api_version, data{switch, mode, inventory, activities, receipts, counts}; (2) every activity has `mock` boolean; (3) unknown_node error code appears when origin="nowhere_x"; (4) /aws/status ok true with mode key; (5) handler minutes match engine minutes for same trip (thinness check).
+- Regenerate `web/public/fixture-aws-panel.json` via a tiny script `web/mkfixture_aws.py` calling the handler (same style as mkfixture.py) so UI island can demo offline.
+- Update `docs/WRUN.md` operator runbook if it exists OR create stub listing endpoints.
+
+## Rules
+No logic in api; counts derived only in aws/layer; ≤120 lines/file; additive schema only.
+
+## Verify
+unittest discover exit 0; `wsl python3 -c` one-shot curl-less smoke printing both endpoint payload keys; report PASS/FAIL + counts.

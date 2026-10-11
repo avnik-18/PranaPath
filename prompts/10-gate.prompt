@@ -1,0 +1,30 @@
+# SECTION 10 · Gate & drill — the final PASS/FAIL — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. All sections 01–09 done. FIRST read root CLAUDE.md, `.claude/skills/submission-gate` (17-line checklist), docs/WRUN.md, DEMO.md. Machine: WSL python3 / node; Edge shots only via PowerShell side; no installs.
+
+## Goal
+Rubber-glove day: treat the repo as if brand-new, prove test-green build-clean runbook-clean, then deliver the film and stop. NO new features. NO refactors. If a FAIL appears: fix ONLY if trivial (<5 min); else record FAIL reason in `docs/gate-report.md` and keep going.
+
+## Run list (execute in this order)
+1. `wsl python3 -m unittest discover -s tests -v` — expect all green (20 + aws rounds by now). Print final line.
+2. `wsl ~/node/bin/npx tsc --noEmit -p web` exit 0.
+3. `wsl ~/node/bin/npx --prefix web vite build` exit 0 and `dist/` newer than 1 min.
+4. Fresh-machine drill per docs/WRUN.md with the ACTUAL commands, from a cloned-clean temp dir IF repo supports it (or `git archive`-style copy): run fixture demo → expect fixture panel + default trip renders.
+5. `wsl python3 infra/deploy.py --dry-run` exits 0 with plan (no creds).
+6. Film: ffprobe duration of `film/final_cut.mp4` between 140–170 s; faststart flag confirmed.
+7. Demo checklist against `DEMO.md`: each of the 9 beats → does the matching screen/asset exist? Print table.
+8. `.claude/skills/submission-gate` checklist run; write `docs/gate-report.md` PASS/FAIL table (every line, short reason).
+9. EventBridge/CFN/lambda pieces: template.yaml yaml-valid; 14 services counted; region only ap-south-1 shown.
+10. Final receipts: grep `data/receipts/*.ndjson` count + ship samples into `docs/gate-report.md`.
+
+## Deliverables
+- `docs/gate-report.md` (the ONLY file you create; ≤100 lines, table format).
+- Final film path printed.
+- Print "GATE RESULT: PASS n/17" as the last line of your report.
+
+## Rules
+Never claim something you didn't run. If Step 4 clone-clean fails logically (no git repo), substitute a field-verify of file presence (README/DEMO/fixture/explainer receipts present).
+
+## STOP
+On the last line print nothing else.

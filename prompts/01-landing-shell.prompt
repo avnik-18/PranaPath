@@ -1,0 +1,22 @@
+# SECTION 01 · Landing shell + demo login + view switch — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai` (hackathon eco-routing web app, Vite+React+TS+MapLibre, working and verified: map island at App.tsx, build passes). FIRST read `CLAUDE.md` (root) and `web/CLAUDE.md`. Machine rules: company laptop — NO Windows installs; run python via `wsl`, node via WSL `~/node/bin`. Never touch other sections' folders (backend/aws, infra, film beats).
+
+## Goal
+Add a Paperfolio-style dark landing page as the front face: landing at `#/` (or default view), the working route app one click away, and a slick demo login gate that unlocks BOTH the product and (later, Section 06) the AWS console — one login, no second prompt. Borrow the mood of the extracted template in `.template_extract/` (look ONLY — hero typography, section rhythm, orange/blue accents). Do NOT port Next.js; we have no pnpm.
+
+## Build list (exact files)
+- `web/src/components/RoutingApp.tsx` — MOVE the current body of `App.tsx` here verbatim (same markup, same hook call), so App.tsx becomes a thin switcher.
+- `web/src/components/entry/LoginGate.tsx` — full-screen dark gate: brand dot + headline "EcoRoute AI", two pre-filled inputs (demo@ecoroute.ai / demo-not-real), visible note "demo sign-in — no real auth, one click", primary button SIGN IN AS DEMO that calls `onEnter()` typed prop.
+- `web/src/components/landing/Navigation.tsx` — top nav: logo-dot + EcoRoute AI, links Product / System / Limits / Open app; typed props, no router dep.
+- `web/src/components/landing/Hero.tsx` — kicker "DELHI · OCTOBER · BAD-AIR DAY", H1 "Your navigation optimises time. Not what your lungs get.", sub copy from real trip stats (+0.1 min → −5.3% dose), CTA buttons [Open the app] [See the AWS stack].
+- `web/src/components/landing/Marquee.tsx` — slow tech marquee row (maplibre · dx · bedrock · eventbridge ...), pure CSS animation.
+- `web/src/App.tsx` — state: `entered:boolean`, `view:"landing"|"app"`; login → landing; nav links → hash `#app` switches view; landing renders Hero+Marquee+Navigation only.
+- `web/src/index.css` — append `landing-*` classes reusing existing tokens (--accent #ff6a3d, --blue #4fc3ff, grid background).
+
+## Rules
+1 component = 1 file, typed props, ≤200 lines. No new npm dependency. Frontend islands must not import backend. Do not alter MapView/DoseCompare/etc.
+
+## Verify (PowerShell)
+`wsl ~/node/bin/npx tsc --noEmit -p web` then `wsl ~/node/bin/npx --prefix web vite build` (or repo's existing script) — exit 0. Screenshot proof via Edge headless AFTER build. Report PASS/FAIL lines only.

@@ -1,0 +1,2 @@
+# runtime receipts are local evidence, not shipped code
+*.ndjson

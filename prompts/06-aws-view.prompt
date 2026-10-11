@@ -1,0 +1,24 @@
+# SECTION 06 · Web AWS receipts view (the mock view) — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. FIRST read `web/CLAUDE.md`. Contract: web/types.ts additive-only; fetch only via `src/lib/api.ts`. No new npm dep. WSL node for tsc/vite. Do NOT touch backend (05 done), infra, film (08).
+
+## Goal
+The ops console: a full working "AWS Receipts" section inside the app view (unlocked by the Section 01 login — same session state, no second credential). Shows the 14 services live or mocked, deploy checklist, env checklist, go-live guide. UX must make "one click to go live after dropping team creds in .env" obvious.
+
+## Build list
+- `web/src/types.ts` — append AwsPanel types mirroring `backend/api/aws_schemas.py` shapes (switch, mode, region, probe, inventory[i]{service, role, status, note}, activities[i]{ts, service, event, detail, mock:boolean}, receipts[i], counts, error).
+- `web/src/lib/api.ts` — extend: `fetchAwsPanel()` same fixture-first pattern (fixture file `fixture-aws-panel.json` exists from Section 05) with fallback to LIVE URL `/aws/panel`.
+- `web/src/hooks/useAwsPanel.ts` — state {panel, busy, error, reload}; same shape discipline as useRoutesRuntime.
+- `web/src/components/aws/AwsPanel.tsx` — tabs rail (icon chips) + sections grid; MOCK/LIVE banner pill (mock:true ⇒ "MOCK — drop team creds in .env to go live" orange; live ⇒ green "LIVE · region ap-south-1").
+- `web/src/components/aws/AwsServiceCard.tsx` — 14 chips grid: service short name + status dot + one-line role; styled from tokens.
+- `web/src/components/aws/AwsEventFeed.tsx` — vertical timeline of activities (ts · service · event · detail) with mock/live dot per row.
+- `web/src/components/aws/EnvChecklist.tsx` — checklist card of exact `.env` keys needed (dynamodb_ok/lambda_ok/bedrock_ok from probe) with ✓/○ circles.
+- `web/src/components/aws/GoLiveCard.tsx` — 3-step guide: 1) copy `.env.example`→`.env`, drop team keys; 2) `python3 infra/deploy.py --dry-run` then real; 3) reload → stamp LIVE.
+- `web/src/App.tsx` — add view "ops": reachable from RoutingApp header button "AWS receipts" once `entered`; AuthGate continuity (passed login persists; no re-ask).
+
+## Rules
+1 widget 1 file; all numbers from API payload (Magpie grid never re-maths); ≤150 lines.
+
+## Verify
+tsc + vite build exit 0; Node smoke of fixture file parse; Edge headless screenshot of #ops view; PASS/FAIL only.

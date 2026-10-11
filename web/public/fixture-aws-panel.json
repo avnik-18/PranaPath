@@ -1,0 +1,221 @@
+{
+ "ok": true,
+ "api_version": "v1",
+ "data": {
+  "switch": "mock",
+  "mode": "mock",
+  "region": "ap-south-1",
+  "probe": {
+   "dynamodb_ok": null,
+   "lambda_ok": null,
+   "bedrock_ok": null
+  },
+  "reason": "no team AWS credentials in .env yet — everything below is a deterministic mock, every number traceable to the real panel",
+  "inventory": [
+   {
+    "service": "Amplify",
+    "role": "hosts the web island (static)",
+    "group": "front",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "API Gateway",
+    "role": "HTTPS door: /routes · /aws/*",
+    "group": "edge",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "Lambda[engine]",
+    "role": "routes + dose computation",
+    "group": "edge",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "Lambda[explainer]",
+    "role": "caged-AI glue, read-only",
+    "group": "edge",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "Bedrock Nova Lite",
+    "role": "one sentence, validator-gated",
+    "group": "edge",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "DynamoDB",
+    "role": "trip receipts + AQI snapshot",
+    "group": "data",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "EventBridge 15-min",
+    "role": "AQI refresh cadence",
+    "group": "health",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "Lambda[aqi-refresh]",
+    "role": "snapshot extender",
+    "group": "health",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "EventBridge 06:00",
+    "role": "daily advisory trigger",
+    "group": "advisory",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "Step Functions",
+    "role": "AdvisoryOrchestrator state machine",
+    "group": "advisory",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "SNS",
+    "role": "best jog window email",
+    "group": "advisory",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "CloudWatch",
+    "role": "structured logs + alarms",
+    "group": "ops",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "X-Ray",
+    "role": "trace on every route decision",
+    "group": "ops",
+    "status": "GREEN (mock)"
+   },
+   {
+    "service": "Powertools",
+    "role": "Lambda observability middleware",
+    "group": "ops",
+    "status": "GREEN (mock)"
+   }
+  ],
+  "activities": [
+   {
+    "ts": "t+0.0ms",
+    "service": "API Gateway",
+    "event": "GET /routes served",
+    "detail": "ashok_vihar->pitampura (jog)",
+    "mock": true
+   },
+   {
+    "ts": "t+22.8ms",
+    "service": "Lambda[engine]",
+    "event": "routes + doses computed",
+    "detail": "fastest 18.7 min / 154.8 µg vs breathe-safe 18.8 min / 143.3 µg · 74 segments",
+    "mock": true
+   },
+   {
+    "ts": "t+36.5ms",
+    "service": "DynamoDB",
+    "event": "PutItem trips",
+    "detail": "1 trip row · decision receipt linked for X-Ray",
+    "mock": true
+   },
+   {
+    "ts": "t+54.7ms",
+    "service": "Lambda[explainer]",
+    "event": "explainer invoked",
+    "detail": "stats-only payload · validator passed · source=template",
+    "mock": true
+   },
+   {
+    "ts": "t+73.0ms",
+    "service": "Bedrock Nova Lite",
+    "event": "sentence gated",
+    "detail": "model text must repeat engine numbers back; template fallback armed (used: True)",
+    "mock": true
+   },
+   {
+    "ts": "t+86.6ms",
+    "service": "EventBridge 15-min",
+    "event": "aqi-refresh cadence",
+    "detail": "next 15-min tick queued — 1 snapshot put",
+    "mock": true
+   },
+   {
+    "ts": "t+100.3ms",
+    "service": "EventBridge 06:00",
+    "event": "daily advisory trigger",
+    "detail": "Step Functions AdvisoryOrchestrator armed for 06:00 IST",
+    "mock": true
+   },
+   {
+    "ts": "t+114.0ms",
+    "service": "Step Functions",
+    "event": "execution schedule",
+    "detail": "best jog window scan overnight -> SNS publish",
+    "mock": true
+   },
+   {
+    "ts": "t+127.7ms",
+    "service": "CloudWatch",
+    "event": "structured logs",
+    "detail": "11 structured events emitted · alarm set on 5xx + p99",
+    "mock": true
+   },
+   {
+    "ts": "t+141.4ms",
+    "service": "X-Ray",
+    "event": "trace recorded",
+    "detail": "1 service map: web -> api -> engine -> guardian",
+    "mock": true
+   },
+   {
+    "ts": "t+155.0ms",
+    "service": "Powertools",
+    "event": "middleware headers",
+    "detail": "logger/metrics/tracer wired on every lambda",
+    "mock": true
+   }
+  ],
+  "receipts": [
+   {
+    "kind": "deploy.dry-run",
+    "payload": {
+     "step": "template validated offline",
+     "charges": "₹0"
+    },
+    "mock": true
+   },
+   {
+    "kind": "probe.snapshot",
+    "payload": {
+     "services": 14,
+     "note": "mock mode"
+    },
+    "mock": true
+   },
+   {
+    "kind": "engine.route",
+    "payload": {
+     "engine": "stdlib",
+     "ai": "validator-gated"
+    },
+    "mock": true
+   }
+  ],
+  "counts": {
+   "services": 14,
+   "green_live": 0,
+   "green_mock": 14,
+   "events": 11,
+   "receipts": 3
+  },
+  "trip": {
+   "origin": "ashok_vihar",
+   "dest": "pitampura",
+   "mode": "jog"
+  },
+  "trip_minutes": 18.7,
+  "dose_fastest_ug": 154.8,
+  "dose_breathe_safe_ug": 143.3
+ }
+}

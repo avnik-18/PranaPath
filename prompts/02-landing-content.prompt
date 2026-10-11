@@ -1,0 +1,21 @@
+# SECTION 02 · Landing content sections — do ONLY this section
+
+## Who you are
+Fresh agent in `D:\Hackathon\first_commit\Project\ecoroute-ai`. FIRST read root `CLAUDE.md`, `web/CLAUDE.md`. Assume Section 01 done (App.tsx switcher, LandingHero, Navigation, Marquee, entry/LoginGate exist; `landing-*` CSS tokens in index.css). Machine: company laptop, no Windows installs; WSL node/python only. Touch NOTHING in backend/, infra/, prompts/, film.
+
+## Goal
+Give the landing page its substance — four more widget files, all copy pulled from OUR docs, zero invented claims.
+
+## Build list
+- `web/src/components/landing/AboutTrap.tsx` — "THE TRAP" section: two streets same destination story; right rail shows the dose formula `dose(µg)=Σ C×IR×minutes` monospace card (copy the exact framing from `docs/ARCHITECTURE.md` + film beat2 copy in `web/frames/mk_beats.py`).
+- `web/src/components/landing/SystemRings.tsx` — the 6-ring offline picture + 14 AWS services tablestrip (Amplify, API GW, Lambda[engine], Lambda[explainer], Lambda[aqi-refresh], DynamoDB, Bedrock Nova Lite, EventBridge×2, Step Functions, SNS, CloudWatch, X-Ray, IAM, Powertools). Render as compact chips grouped by layer; data as a local const array, NOT fetched.
+- `web/src/components/landing/ProofStrip.tsx` — 3 screenshot cards using real frames from `web/frames/` (beat1/beat3/beat5.png copy-linked relatively `../frames/...` on landing build) with one-line captions: the ask / measured trade-off / live map. Under it the trust badges chip row (validator passed · 20/20 tests · LLM-outage safe) mirroring film beat4.
+- `web/src/components/landing/HonestLimits.tsx` — quiet band: real OSM roads, real dose math, ILLUSTRATIVE pollution bands; live CPCB/Open-Meteo lands with the AWS ring; link to `docs/honest-limits.md` path as text.
+- `web/src/components/landing/Footer.tsx` — brand + "built in one session · AI-assisted (see CREDITS.md)" + © year + tiny nav.
+Append these into the existing landing view state/file list from Section 01 (edit App.tsx only to add components in order: Navigation, Hero, AboutTrap, SystemRings, ProofStrip, HonestLimits, Footer).
+
+## Rules
+One widget per file, typed props ≤ get code under 200 lines, tokens from index.css only, no new deps, no fetches on landing.
+
+## Verify
+tsc noEmit + vite build exit 0; then Edge headless full-page screenshot of landing; confirm all sections visible; report PASS/FAIL.
